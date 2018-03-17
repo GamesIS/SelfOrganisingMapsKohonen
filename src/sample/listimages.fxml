@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.canvas.Canvas?>
+<?import javafx.scene.chart.LineChart?>
+<?import javafx.scene.chart.NumberAxis?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.AnchorPane?>
+
+<AnchorPane prefHeight="800.0" prefWidth="1000.0" xmlns="http://javafx.com/javafx/8.0.141" xmlns:fx="http://javafx.com/fxml/1" fx:controller="sample.controller.ListImagesController">
+   <children>
+      <TableView fx:id="imageTable" layoutX="612.0" layoutY="35.0" prefHeight="172.0" prefWidth="174.0">
+        <columns>
+          <TableColumn fx:id="pathColumn" prefWidth="75.0" text="C1" />
+          <TableColumn fx:id="nameColumn" prefWidth="75.0" text="C2" />
+        </columns>
+      </TableView>
+      <ListView fx:id="nameList" layoutX="786.0" layoutY="21.0" prefHeight="200.0" prefWidth="200.0" />
+      <ImageView fx:id="imageView" fitHeight="200.0" fitWidth="200.0" layoutX="786.0" layoutY="233.0" pickOnBounds="true" preserveRatio="true" />
+      <Canvas fx:id="canvas" height="600.0" layoutX="14.0" layoutY="14.0" width="600.0" />
+      <Label fx:id="frameRate" layoutX="637.0" layoutY="13.0" text="Label" />
+      <LineChart fx:id="convergence" layoutX="556.0" layoutY="415.0" prefHeight="371.0" prefWidth="428.0">
+        <xAxis>
+          <NumberAxis side="BOTTOM" fx:id="xAxisIteration" />
+        </xAxis>
+        <yAxis>
+          <NumberAxis fx:id="yAxisError" side="LEFT" />
+        </yAxis>
+      </LineChart>
+   </children>
+</AnchorPane>
