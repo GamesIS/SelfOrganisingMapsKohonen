@@ -35,7 +35,7 @@ public class NeuralNetwork {
         for (int i = 1; i < HIDDEN_LAYERS; i++ ) {// Пробегаемся по всем слоям
             for(int j = 0; j < COUNT_NEURON_ON_HIDDEN_LAYERS; j++){//Пробегаемся по всем нейронам слоя
 
-
+                //TODO ИДЕЯ ОБЪЕДЕНИТЬ ВСЕ СЛОИ. В ОДИН, НУЖНО ПРОДУМАТЬ КАКИЕ ДОП. ПЕРЕМЕННЫЕ ИСПОЛЬЗОВАТЬ
                 for(int x = 0; x < COUNT_INPUT_NEURON; x++){//
                     //Считаем взвешенную сумму
                 }
