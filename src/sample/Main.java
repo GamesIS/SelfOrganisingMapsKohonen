@@ -29,8 +29,12 @@ public class Main extends Application {
         loadImages();
 
         NeuralNetwork neuralNetwork = new NeuralNetwork();
-        neuralNetwork.start();
+        neuralNetwork.load();
 
+    }
+
+    public static void main(String[] args) {
+        launch(args);
     }
 
     public ObservableList<Image> getImageData() {
@@ -191,7 +195,4 @@ public class Main extends Application {
         return primaryStage;
     }
 
-    public static void main(String[] args) {
-        launch(args);
-    }
 }

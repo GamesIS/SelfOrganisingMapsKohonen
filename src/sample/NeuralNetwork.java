@@ -6,22 +6,46 @@ import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 import java.util.Random;
 
 public class NeuralNetwork {
-    private static final int COUNT_NEURON = 900;
+    private static final int COUNT_INPUT_NEURON = 900 + 1;//Из-за нейрона смещения + 1
     private static final int HIDDEN_LAYERS = 1;
-    private static final int COUNT_NEURON_ON_HIDDEN_LAYERS = 1500;//Рандомно взял, но больше начального
+    private static final int COUNT_NEURON_ON_HIDDEN_LAYERS = 1500 + 1;//Рандомно взял, но больше начального, из-за нейрона смещения + 1
     private static final int COUNT_OUTPUT_NEURON = 33;//Из-за кол-ва букв
+    private static final double BIAS_NEURON = 1;// Нейрон смещения /*их можно размещать на входном слое и всех скрытых слоях, но никак не на выходном слое*/
 
     private int iteration; //Сколько раз нейросеть прошла по trainingSet
     private int[] epoch;
 
     private double[][][] weights;//[Номер слоя][Номер левого нейрона][Номер правого нейрона]
 
+    private double[][] neuron;//[Номер слоя][Номер нейрона]
     private double[] input;// Входные значения
     private double[] output;// Выходные значения
+
     private int trainingSet;//Нужно рандомизировать подачу тренировочных данных
     private int verifyingSet;
 
-    public void start() {
+    public void calculate(int [][] imageArray){
+        double[] tmpArray = convertBinaryArrayToSingle(imageArray);
+        loadInput(tmpArray);//Инициированы входные значения
+        neuron = new double[1+HIDDEN_LAYERS+1][COUNT_NEURON_ON_HIDDEN_LAYERS];
+        int LastTmp; //сохраним сюда количество нейронов рассматриваемого слоя
+        int FirstTmp; //сохраним сюда индекс первого нейрона рассматриваемого слоя
+
+        double res = 0; // Переменная для подсчета взвешенной суммы
+        for (int i = 1; i < HIDDEN_LAYERS; i++ ) {// Пробегаемся по всем слоям
+            for(int j = 0; j < COUNT_NEURON_ON_HIDDEN_LAYERS; j++){//Пробегаемся по всем нейронам слоя
+
+
+                for(int x = 0; x < COUNT_INPUT_NEURON; x++){//
+                    //Считаем взвешенную сумму
+                }
+                //res =
+            }
+        }
+
+    }
+
+    public void load() {
         if (NeuroProperties.isSaveProperty()) {
             NeuroProperties neuroProperties = NeuroProperties.loadProperty();
             weights = neuroProperties.getWeightsArray();
@@ -33,7 +57,7 @@ public class NeuralNetwork {
         }
     }
 
-    public void loadInput(double[] newInput) {
+    private void loadInput(double[] newInput) {
         input = new double[newInput.length];
         for (int i = 0; i < newInput.length; i++) {
             input[i] = activate(newInput[i]);//Специально использовал функцию активации, хоть значения 1 и 0, чтобы потом не забыть
@@ -43,6 +67,18 @@ public class NeuralNetwork {
     public double activate(double x)// Функция активации (Нормальзации значения [0;1])
     {
         return (1 / (1 + Math.pow(Math.E, -x)));//Сигмоид
+    }
+
+    private double[] convertBinaryArrayToSingle(int [][] imageArray){
+        int k = 0;
+        double[] tmpArray = new double[COUNT_INPUT_NEURON];//Возможно заменить на imageArray.length * imageArray[0].length
+        tmpArray[0] = 1;//Инициализация нейрона смещения
+        for (int i = 1; i < imageArray.length; i++){
+            for(int j = 0; j < imageArray[i].length; j++){
+                tmpArray[k++] = (double) imageArray[i][j];
+            }
+        }
+        return tmpArray;
     }
 
     public static void fillRandomDouble(double[][][] weightsArray) {
@@ -202,6 +238,9 @@ public class NeuralNetwork {
         throw new IllegalArgumentException("Нет такой буквы");
     }
 
+    /**
+     * Используется метод обратного распространения
+     * */
     public void study() {
         throw new NotImplementedException();
     }
