@@ -23,13 +23,14 @@ public class Main extends Application {
     private Stage primaryStage;
     private BorderPane rootLayout;
     private ObservableList<Image> imageData = FXCollections.observableArrayList();
+    private NeuralNetwork neuralNetwork;
 
     public Main() {
-
-        loadImages();
-
-        NeuralNetwork neuralNetwork = new NeuralNetwork();
+        neuralNetwork = new NeuralNetwork();
         neuralNetwork.load();
+        System.out.println(neuralNetwork.activate(35));
+        //System.exit(1);
+        loadImages();
 
     }
 
@@ -65,10 +66,12 @@ public class Main extends Application {
                     //System.out.println(item.getName() + "  \tфайл");
                     try {
                         BufferedImage bufferedImage = ImageIO.read(new File(item.getAbsolutePath()));
-                        imageData.add(new Image(item.getPath(), item.getName(), imageToArray(bufferedImage)));
+                        int [][] tmp = imageToArray(bufferedImage);
+                        imageData.add(new Image(item.getPath(), item.getName(), tmp/*imageToArray(bufferedImage)*/));
+                        neuralNetwork.calculate(tmp);
                     }
                     catch (Exception e){
-                        System.out.println("ERROR: " + e);
+                        e.printStackTrace();
                     }
                 }
                 else{

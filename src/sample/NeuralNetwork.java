@@ -6,43 +6,40 @@ import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 import java.util.Random;
 
 public class NeuralNetwork {
-    private static final int COUNT_INPUT_NEURON = 900 + 1;//Из-за нейрона смещения + 1
     private static final int HIDDEN_LAYERS = 1;
-    private static final int COUNT_NEURON_ON_HIDDEN_LAYERS = 1500 + 1;//Рандомно взял, но больше начального, из-за нейрона смещения + 1
+
+    private static final int COUNT_HIDDEN_NEURON = 1500 + 1;//Рандомно взял, но больше начального, из-за нейрона смещения + 1
+    private static final int COUNT_INPUT_NEURON = 900 + 1;//Из-за нейрона смещения + 1
     private static final int COUNT_OUTPUT_NEURON = 33;//Из-за кол-ва букв
+
+    private static final int COUNT_LAYERS = HIDDEN_LAYERS + 2;// Скрытые слои + входной и выходной слой
+
+    private static final int COUNT_EDGE = COUNT_LAYERS - 1;// Количество слоев ребер = Количество слоев нейронов - 1
+
     private static final double BIAS_NEURON = 1;// Нейрон смещения /*их можно размещать на входном слое и всех скрытых слоях, но никак не на выходном слое*/
+
+    //private static final double d = 0.2; // параметр наклона сигмоидальной функции
 
     private int iteration; //Сколько раз нейросеть прошла по trainingSet
     private int[] epoch;
 
-    private double[][][] weights;//[Номер слоя][Номер левого нейрона][Номер правого нейрона]
+    private double[][][] weights;//[Количество слоев ребер][Номер левого нейрона][Номер правого нейрона]
 
-    private double[][] neuron;//[Номер слоя][Номер нейрона]
+    private double[][] neurons;//[Номер слоя][Номер нейрона]
     private double[] input;// Входные значения
     private double[] output;// Выходные значения
+    private int [] layersLength;// Массив хранящий длину каждого слоя
 
     private int trainingSet;//Нужно рандомизировать подачу тренировочных данных
     private int verifyingSet;
 
-    public void calculate(int [][] imageArray){
-        double[] tmpArray = convertBinaryArrayToSingle(imageArray);
-        loadInput(tmpArray);//Инициированы входные значения
-        neuron = new double[1+HIDDEN_LAYERS+1][COUNT_NEURON_ON_HIDDEN_LAYERS];
-        int LastTmp; //сохраним сюда количество нейронов рассматриваемого слоя
-        int FirstTmp; //сохраним сюда индекс первого нейрона рассматриваемого слоя
-
-        double res = 0; // Переменная для подсчета взвешенной суммы
-        for (int i = 1; i < HIDDEN_LAYERS; i++ ) {// Пробегаемся по всем слоям
-            for(int j = 0; j < COUNT_NEURON_ON_HIDDEN_LAYERS; j++){//Пробегаемся по всем нейронам слоя
-
-                //TODO ИДЕЯ ОБЪЕДЕНИТЬ ВСЕ СЛОИ. В ОДИН, НУЖНО ПРОДУМАТЬ КАКИЕ ДОП. ПЕРЕМЕННЫЕ ИСПОЛЬЗОВАТЬ
-                for(int x = 0; x < COUNT_INPUT_NEURON; x++){//
-                    //Считаем взвешенную сумму
-                }
-                //res =
-            }
+    public NeuralNetwork() {
+        layersLength = new int[COUNT_LAYERS];
+        layersLength[0] = COUNT_INPUT_NEURON;
+        for (int i = 1; i < HIDDEN_LAYERS + 1; i++){
+            layersLength[i] = COUNT_HIDDEN_NEURON;
         }
-
+        layersLength[layersLength.length - 1] = COUNT_OUTPUT_NEURON;
     }
 
     public void load() {
@@ -51,47 +48,100 @@ public class NeuralNetwork {
             weights = neuroProperties.getWeightsArray();
             iteration = neuroProperties.getIteration();
         } else {
-            weights = new double[HIDDEN_LAYERS][COUNT_NEURON_ON_HIDDEN_LAYERS][COUNT_NEURON_ON_HIDDEN_LAYERS];
-            NeuralNetwork.fillRandomDouble(weights);
+            weights = new double[COUNT_EDGE][maxLengthLayers()][maxLengthLayers()];
+            NeuralNetwork.fillRandomDouble(weights, layersLength);
             NeuroProperties.saveProperty(new NeuroProperties(weights, iteration));
         }
     }
 
-    private void loadInput(double[] newInput) {
-        input = new double[newInput.length];
-        for (int i = 0; i < newInput.length; i++) {
-            input[i] = activate(newInput[i]);//Специально использовал функцию активации, хоть значения 1 и 0, чтобы потом не забыть
+    private static int maxLengthLayers(){
+        return COUNT_HIDDEN_NEURON>=COUNT_INPUT_NEURON?COUNT_HIDDEN_NEURON:COUNT_INPUT_NEURON;
+    }
+
+    public void calculate(int [][] imageArray){
+        double[] tmpArray = convertBinaryArrayToSingle(imageArray);
+        loadInput(tmpArray);//Инициированы входные значения, там пропускаем через функцию активации
+        neurons = new double[COUNT_LAYERS][maxLengthLayers()];
+        neurons[0] = input;
+        int lastTmp = layersLength[0]; //Количество нейронов рассматриваемого слоя
+        int firstTmp; //сохраним сюда индекс первого нейрона рассматриваемого слоя
+        double res; // Переменная для подсчета взвешенной суммы
+        for (int i = 1; i < layersLength.length; i++ ) {// Пробегаемся по всем слоям, начиная со 2
+            int tmp;
+            if(i!=layersLength.length-1){
+                neurons[i-1][0] = BIAS_NEURON;
+                tmp = 1;
+            }
+            else tmp=0;
+            for(int j = tmp; j < layersLength[i]; j++){//Пробегаемся по всем нейронам слоя
+                res = 0;
+                /**
+                 * Считаем для данного нейрона взвешенную сумму
+                 * пробегаясь по нейронам левого слоя
+                 * */
+                //TODO еще раз разобраться с нейроном смещения
+                for(int x = 0; x < layersLength[i-1]; x++){
+                    res += neurons[i-1][x]*weights[i-1][x][j];
+                }
+                /**
+                 * Из-за того что res получался всегда 1
+                 * нужна использовать нормализацию*/
+                neurons[i][j]= activate(normalization(res, i));//Прогоняем результат через активационную функцию
+            }
         }
+        System.out.println();
+    }
+
+    private void loadInput(double[] newInput) {
+        //input = new double[newInput.length];
+        input = newInput;
+        /*for (int i = 0; i < newInput.length; i++) {
+            input[i] = activate(newInput[i]);//Специально использовал функцию активации, хоть значения 1 и 0, чтобы потом не забыть
+
+        }*/
+    }
+
+    public double normalization(double x, int numLayer){
+        return x/(layersLength[numLayer]);
     }
 
     public double activate(double x)// Функция активации (Нормальзации значения [0;1])
     {
-        return (1 / (1 + Math.pow(Math.E, -x)));//Сигмоид
+        return (1 / (1 + Math.pow(Math.E, -(/*d**/x))));//Сигмоид
     }
 
     private double[] convertBinaryArrayToSingle(int [][] imageArray){
         int k = 0;
         double[] tmpArray = new double[COUNT_INPUT_NEURON];//Возможно заменить на imageArray.length * imageArray[0].length
-        tmpArray[0] = 1;//Инициализация нейрона смещения
-        for (int i = 1; i < imageArray.length; i++){
+        tmpArray[0] = BIAS_NEURON;//Инициализация нейрона смещения
+        for (int i = 0; i < imageArray.length; i++){
             for(int j = 0; j < imageArray[i].length; j++){
-                tmpArray[k++] = (double) imageArray[i][j];
+                tmpArray[++k] = (double) imageArray[i][j];
             }
         }
         return tmpArray;
     }
 
-    public static void fillRandomDouble(double[][][] weightsArray) {
+    public static void fillRandomDouble(double[][][] weightsArray, int[] layersLength) {
         double rangeMin = 0.0f;
         double rangeMax = 1.0f;
         Random r = new Random();
-        for (int i = 0; i < weightsArray.length; i++) {
-            for (int j = 0; j < weightsArray[i].length; j++) {
-                for (int k = 0; k < weightsArray[i][j].length; k++) {
+        for (int i = 0; i < COUNT_LAYERS - 1; i++) {//Бежим по слоям
+            for (int j = 0; j < layersLength[i]; j++) {
+                for (int k = 0; k < layersLength[i+1]; k++) {
                     weightsArray[i][j][k] = rangeMin + (rangeMax - rangeMin) * r.nextDouble();
+                    //System.out.print(weightsArray[i][j][k]);
                 }
+                //System.out.println();
             }
+            /*System.out.println();
+            System.out.println();
+            System.out.println();*/
         }
+    }
+
+    private static void writeMatrix(double[][][] weightsArray){
+
     }
 
     public static char getOutputChar(int number) {
