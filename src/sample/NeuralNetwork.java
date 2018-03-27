@@ -18,7 +18,7 @@ public class NeuralNetwork {
 
     private static final double BIAS_NEURON = 1;// Нейрон смещения /*их можно размещать на входном слое и всех скрытых слоях, но никак не на выходном слое*/
 
-    //private static final double d = 0.2; // параметр наклона сигмоидальной функции
+    private static final double d = 0.002; // параметр наклона сигмоидальной функции
 
     private int iteration; //Сколько раз нейросеть прошла по trainingSet
     private int[] epoch;
@@ -67,13 +67,8 @@ public class NeuralNetwork {
         int firstTmp; //сохраним сюда индекс первого нейрона рассматриваемого слоя
         double res; // Переменная для подсчета взвешенной суммы
         for (int i = 1; i < layersLength.length; i++ ) {// Пробегаемся по всем слоям, начиная со 2
-            int tmp;
-            if(i!=layersLength.length-1){
-                neurons[i-1][0] = BIAS_NEURON;
-                tmp = 1;
-            }
-            else tmp=0;
-            for(int j = tmp; j < layersLength[i]; j++){//Пробегаемся по всем нейронам слоя
+            neurons[i-1][0] = BIAS_NEURON;
+            for(int j = 0; j < layersLength[i]; j++){//Пробегаемся по всем нейронам слоя
                 res = 0;
                 /**
                  * Считаем для данного нейрона взвешенную сумму
@@ -86,10 +81,19 @@ public class NeuralNetwork {
                 /**
                  * Из-за того что res получался всегда 1
                  * нужна использовать нормализацию*/
-                neurons[i][j]= activate(normalization(res, i));//Прогоняем результат через активационную функцию
+                //double norm = normalization(res, i);
+                neurons[i][j]= activate(res);//Прогоняем результат через активационную функцию
             }
         }
         System.out.println();
+    }
+
+    /**
+     * Используется метод обратного распространения
+     * */
+    public void study(char sym, int [][] imageArray) {
+        calculate(imageArray);
+        //Ну и тут чето еще
     }
 
     private void loadInput(double[] newInput) {
@@ -107,13 +111,13 @@ public class NeuralNetwork {
 
     public double activate(double x)// Функция активации (Нормальзации значения [0;1])
     {
-        return (1 / (1 + Math.pow(Math.E, -(/*d**/x))));//Сигмоид
+        return (1 / (1 + Math.pow(Math.E, -(d*x))));//Сигмоид
     }
 
     private double[] convertBinaryArrayToSingle(int [][] imageArray){
         int k = 0;
         double[] tmpArray = new double[COUNT_INPUT_NEURON];//Возможно заменить на imageArray.length * imageArray[0].length
-        tmpArray[0] = BIAS_NEURON;//Инициализация нейрона смещения
+        //tmpArray[0] = BIAS_NEURON;//Инициализация нейрона смещения
         for (int i = 0; i < imageArray.length; i++){
             for(int j = 0; j < imageArray[i].length; j++){
                 tmpArray[++k] = (double) imageArray[i][j];
@@ -286,12 +290,5 @@ public class NeuralNetwork {
                 return 32;
         }
         throw new IllegalArgumentException("Нет такой буквы");
-    }
-
-    /**
-     * Используется метод обратного распространения
-     * */
-    public void study() {
-        throw new NotImplementedException();
     }
 }

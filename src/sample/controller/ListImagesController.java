@@ -54,6 +54,9 @@ public class ListImagesController {
     @FXML
     NumberAxis yAxisError;
 
+    /*@FXML
+    Button*/
+
 
     private Main main;
 
