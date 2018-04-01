@@ -89,11 +89,48 @@ public class NeuralNetwork {
     }
 
     /**
-     * Используется метод обратного распространения
+     * Используется метод обратного распространения //Возможно их несколько вариантов
      * */
     public void study(char sym, int [][] imageArray) {
-        calculate(imageArray);
-        //Ну и тут чето еще
+        calculate(imageArray);//TODO тут возможна ошибка
+        int numSym = getOutputNumber(sym);
+        int lastLayer = layersLength.length - 1;// номер последнего слоя
+        double expectedResult;//Ожидаемый результат
+        double error;//Ошибка(Ожидаемый минус текущий)
+        double weights_delta;//Дельта весов (ошибка*производную активационной функции)
+        double derivative;//производная сигмоида = sigmoid(x)-(1-sigmoid(x))
+        double tmp;//временная переменная для хранения значения активационной функции
+
+        double newWeight;
+        /**
+         * смысл в том, что мы сначала рассчитываем ошибку для конечного выходного нейрона, а потом передаем ее обратно
+         * рассчитывая значения для предыдущих нейронов, на основе этого изменяем веса
+         * */
+
+        //double difOut;
+        for(int j = lastLayer; j>=1; j--) {//Начинаем с конечного слоя. Текущий (правый) слой
+            for(int i = 0; i < layersLength[j]; i++){//Пробегаемся по всем нейронам текущего(левого) слоя
+                if(i == numSym){expectedResult = 1.0D;}
+                else {expectedResult = 0.0D;}
+                error = /*Math.abs(*/neurons[lastLayer][i] - expectedResult/*)*/;
+                /**
+                 * ошибка для внутренних нейронов рассчитывается
+                 * error = вес_ребра_до_нейрона_справа(1)*ошибка_нейрона_справа(1) ... + вес_ребра_до_нейрона_справа(n)*ошибка_нейрона_справа(n)
+                 * http://robocraft.ru/blog/algorithm/560.html
+                 * */
+                tmp = activate(neurons[lastLayer][i]);
+                derivative = tmp * (1 - tmp);//производная сигмоида = sigmoid(x)*(1-sigmoid(x))
+                weights_delta = error * derivative;
+                //double[][][] weights;//[Количество слоев ребер][Номер левого нейрона][Номер правого нейрона]
+                /**
+                *формула для расчета нового веса   newWeight = oldWeight + коэффициент_скорости_обучения * значения_выходного_нейрона(слева) * дельту_весов(нейрона справа)
+                * */
+                for(int k = 0; k < layersLength[j-1]; k++) {//Бежим по всем рассматриваемого(левого) нейронам слоя
+                    //weights[j-1][k][i] =
+                }
+
+            }
+        }
     }
 
     private void loadInput(double[] newInput) {
