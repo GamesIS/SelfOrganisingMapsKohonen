@@ -20,6 +20,8 @@ public class NeuralNetwork {
 
     private static final double d = 0.002; // параметр наклона сигмоидальной функции
 
+    private static final double SENSITIVITY = 0.02;
+
     private int iteration; //Сколько раз нейросеть прошла по trainingSet
     private int[] epoch;
 
@@ -106,31 +108,45 @@ public class NeuralNetwork {
          * смысл в том, что мы сначала рассчитываем ошибку для конечного выходного нейрона, а потом передаем ее обратно
          * рассчитывая значения для предыдущих нейронов, на основе этого изменяем веса
          * */
+        double[] errorsRightLayer = new double[layersLength[lastLayer]];
+        double[] errorsLeftLayer = new double[layersLength[lastLayer-1]];
+        //boolean res;
 
         //double difOut;
         for(int j = lastLayer; j>=1; j--) {//Начинаем с конечного слоя. Текущий (правый) слой
-            for(int i = 0; i < layersLength[j]; i++){//Пробегаемся по всем нейронам текущего(левого) слоя
-                if(i == numSym){expectedResult = 1.0D;}
-                else {expectedResult = 0.0D;}
-                error = /*Math.abs(*/neurons[lastLayer][i] - expectedResult/*)*/;
-                /**
-                 * ошибка для внутренних нейронов рассчитывается
-                 * error = вес_ребра_до_нейрона_справа(1)*ошибка_нейрона_справа(1) ... + вес_ребра_до_нейрона_справа(n)*ошибка_нейрона_справа(n)
-                 * http://robocraft.ru/blog/algorithm/560.html
-                 * */
-                tmp = activate(neurons[lastLayer][i]);
-                derivative = tmp * (1 - tmp);//производная сигмоида = sigmoid(x)*(1-sigmoid(x))
-                weights_delta = error * derivative;
+            //if(j != lastLayer) errorsLeftLayer = new double[layersLength[j]];
+            for(int i = 0; i < layersLength[j]; i++){//Пробегаемся по всем нейронам СНАЧАЛА текущего(правого) ПОТОТМ ЛЕВОГО слоя
+                if(j == lastLayer){
+                    if(i == numSym){expectedResult = 1.0D;}
+                    else {expectedResult = 0.0D;}
+                    errorsRightLayer[i] = Math.abs(neurons[lastLayer][i] - expectedResult);// Здесь рассчиытваем ошибки нейронов //TODO ВОЗМОЖНО АКТИВАЦИОННУЮ ФУНКЦИЮ НАДО ПРИМЕНЯТЬ
+                    if(errorsRightLayer[i] <= SENSITIVITY) break;// Если верно не корректируем веса
+                }
+                else {
+                    /**
+                     * ошибка для внутренних нейронов рассчитывается
+                     * error = вес_ребра_до_нейрона_справа(1)*ошибка_нейрона_справа(1) ... + вес_ребра_до_нейрона_справа(n)*ошибка_нейрона_справа(n)
+                     * http://robocraft.ru/blog/algorithm/560.html
+                     * */
+                    for(int k = 0; k < errorsRightLayer.length; k++){
+                        errorsLeftLayer[i] += errorsRightLayer[k] * weights[j-1][i][k];//TODO ВОЗМОЖНО J-1 НЕВЕРНО
+                    }
+                    //if(j < lastLayer-1) errorsRightLayer = errorsLeftLayer;//TODO УСЛОВИЕ БЫЛО ЗДЕСЬ
+                }
+                if(j < lastLayer-1) errorsRightLayer = errorsLeftLayer;
+                //tmp = activate(neurons[lastLayer][i]);
+                //derivative = tmp * (1 - tmp);//производная сигмоида = sigmoid(x)*(1-sigmoid(x))
+                //weights_delta = errorsRightLayer[i] * derivative;
                 //double[][][] weights;//[Количество слоев ребер][Номер левого нейрона][Номер правого нейрона]
                 /**
                 *формула для расчета нового веса   newWeight = oldWeight + коэффициент_скорости_обучения * значения_выходного_нейрона(слева) * дельту_весов(нейрона справа)
                 * */
-                for(int k = 0; k < layersLength[j-1]; k++) {//Бежим по всем рассматриваемого(левого) нейронам слоя
-                    //weights[j-1][k][i] =
-                }
-
             }
+/*            for(int ii = 0; ii < layersLength[j+1]; ii++){//Пробегаемся по всем нейронам текущего(правого) слоя
+                System.out.println();
+            }*/
         }
+        System.out.println();
     }
 
     private void loadInput(double[] newInput) {
@@ -259,7 +275,7 @@ public class NeuralNetwork {
 
     public static char getOutputNumber(char ch) {
         switch (ch) {
-            case 'A':
+            case 'А':
                 return 0;
             case 'Б':
                 return 1;

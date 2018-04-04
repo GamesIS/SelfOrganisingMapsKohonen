@@ -68,7 +68,8 @@ public class Main extends Application {
                         BufferedImage bufferedImage = ImageIO.read(new File(item.getAbsolutePath()));
                         int [][] tmp = imageToArray(bufferedImage);
                         imageData.add(new Image(item.getPath(), item.getName(), tmp/*imageToArray(bufferedImage)*/));
-                        neuralNetwork.calculate(tmp);
+                        //neuralNetwork.calculate(tmp);
+                        neuralNetwork.study('А', tmp);
                     }
                     catch (Exception e){
                         e.printStackTrace();
