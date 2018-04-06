@@ -16,7 +16,10 @@ import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
+import java.util.Map;
 
 public class Main extends Application {
     public static final String RESOURCES_PATH = new File("resources").getAbsolutePath();
@@ -24,14 +27,16 @@ public class Main extends Application {
     private BorderPane rootLayout;
     private ObservableList<Image> imageData = FXCollections.observableArrayList();
     private NeuralNetwork neuralNetwork;
+    private ArrayList<Char> chars;
 
     public Main() {
         neuralNetwork = new NeuralNetwork();
         neuralNetwork.load();
-        System.out.println(neuralNetwork.activate(35));
+        //System.out.println(neuralNetwork.activate(35));
+        chars = new ArrayList<Char>();
         //System.exit(1);
         loadImages();
-
+        //neuralNetwork.study();
     }
 
     public static void main(String[] args) {
@@ -67,9 +72,12 @@ public class Main extends Application {
                     try {
                         BufferedImage bufferedImage = ImageIO.read(new File(item.getAbsolutePath()));
                         int [][] tmp = imageToArray(bufferedImage);
-                        imageData.add(new Image(item.getPath(), item.getName(), tmp/*imageToArray(bufferedImage)*/));
+                        imageData.add(new Image(item.getPath(), item.getName(), tmp));
                         //neuralNetwork.calculate(tmp);
-                        neuralNetwork.study('А', tmp);
+                        chars.add(new Char(tmp, item.getName().split("\\.")[0].charAt(0)));
+                        //neuralNetwork.study('А', tmp);
+                        //TODO DELETE
+                        //break;
                     }
                     catch (Exception e){
                         e.printStackTrace();
