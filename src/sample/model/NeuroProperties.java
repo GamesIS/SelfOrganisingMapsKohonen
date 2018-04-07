@@ -50,7 +50,7 @@ public class NeuroProperties {
     public static void saveProperty(NeuroProperties neuroProperties){
         try {
             //NeuroProperties neuroProperties = new NeuroProperties(weightsArray, iteration);
-            System.out.println(isSaveProperty());
+            //System.out.println(isSaveProperty());
             File file = new File(FILE_PATH + File.separator + FILE_NAME);
             JAXBContext context = JAXBContext.newInstance(NeuroProperties.class);
             Marshaller marshaller = context.createMarshaller();

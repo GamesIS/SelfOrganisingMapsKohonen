@@ -36,6 +36,17 @@ public class Main extends Application {
         chars = new ArrayList<Char>();
         //System.exit(1);
         loadImages();
+        neuralNetwork.study(chars);
+        Char ch = chars.get(0);
+        char sym = 'И';
+        for (Char tmp: chars){
+            //System.out.print(tmp.getName());
+            if (tmp.getName() == sym) {
+                ch = tmp; break;
+            }
+        }
+        System.out.println("Буква = ["+ ch.getName() +"]");
+        neuralNetwork.writeResultsForSym(sym, ch.getImageArray());
         //neuralNetwork.study();
     }
 
