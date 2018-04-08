@@ -46,7 +46,7 @@ public class Main extends Application {
             }
         }
         System.out.println("Буква = ["+ ch.getName() +"]");
-        neuralNetwork.writeResultsForSym(sym, ch.getImageArray());
+        neuralNetwork.writeResultsForSym(ch.getImageArray());
         //neuralNetwork.study();
     }
 
