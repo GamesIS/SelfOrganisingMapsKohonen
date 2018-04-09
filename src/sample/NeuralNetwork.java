@@ -11,7 +11,7 @@ import java.util.Random;
 public class NeuralNetwork {
     private static final int HIDDEN_LAYERS = 1;
 
-    private static final int COUNT_HIDDEN_NEURON = 900 + 1;//Рандомно взял, но больше начального, из-за нейрона смещения + 1
+    private static final int COUNT_HIDDEN_NEURON = 20 + 1;//Рандомно взял, но больше начального, из-за нейрона смещения + 1
     private static final int COUNT_INPUT_NEURON = 900 + 1;//Из-за нейрона смещения + 1
     private static final int COUNT_OUTPUT_NEURON = 33;//Из-за кол-ва букв
 
@@ -19,16 +19,16 @@ public class NeuralNetwork {
 
     private static final int COUNT_EDGE = COUNT_LAYERS - 1;// Количество слоев ребер = Количество слоев нейронов - 1
 
-    private static final int COUNT_EPOCH = 300;// Количество слоев ребер = Количество слоев нейронов - 1
+    private static final int COUNT_EPOCH = 3000;// Количество слоев ребер = Количество слоев нейронов - 1
 
     private static final double BIAS_NEURON = 1;// Нейрон смещения /*их можно размещать на входном слое и всех скрытых слоях, но никак не на выходном слое*/
 
-    private static final double d = 0.002; // параметр наклона сигмоидальной функции
+    private static final double d = 1; // параметр наклона сигмоидальной функции
 
-    private static final double SPEED = 0.2; // коэффициент скорости обучения
-    private static final double ALPHA = 0.5;//α (альфа) — момент
+    private static final double SPEED = 0.05; // коэффициент скорости обучения
+    private static final double ALPHA = 0.005;//α (альфа) — момент
 
-    private static final double SENSITIVITY = 0.002;
+    private static final double SENSITIVITY = 0.000002;
 
     private int iteration; //Сколько раз нейросеть прошла по trainingSet
 
@@ -59,7 +59,7 @@ public class NeuralNetwork {
         } else {
             weights = new double[COUNT_EDGE][maxLengthLayers()][maxLengthLayers()];
             NeuralNetwork.fillRandomDouble(weights, layersLength);
-            NeuroProperties.saveProperty(new NeuroProperties(weights, iteration));
+            //NeuroProperties.saveProperty(new NeuroProperties(weights, iteration));
         }
     }
 
@@ -247,8 +247,8 @@ public class NeuralNetwork {
     }
 
     private static void fillRandomDouble(double[][][] weightsArray, int[] layersLength) {
-        double rangeMin = 0.0f;
-        double rangeMax = 1.0f;
+        double rangeMin = -0.5f;
+        double rangeMax = 0.5f;
         Random r = new Random();
         for (int i = 0; i < COUNT_LAYERS - 1; i++) {//Бежим по слоям
             for (int j = 0; j < layersLength[i]; j++) {

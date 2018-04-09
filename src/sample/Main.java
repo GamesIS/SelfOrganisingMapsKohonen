@@ -38,7 +38,7 @@ public class Main extends Application {
 
 
         Char ch = chars.get(0);
-        char sym = 'О';
+        char sym = 'Ы';
         for (Char tmp: chars){
             //System.out.print(tmp.getName());
             if (tmp.getName() == sym) {
