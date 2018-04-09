@@ -1,7 +1,7 @@
 package sample;
 
+import com.sun.org.apache.xpath.internal.SourceTree;
 import sample.model.NeuroProperties;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.text.DecimalFormat;
 import java.util.Collections;
@@ -11,7 +11,7 @@ import java.util.Random;
 public class NeuralNetwork {
     private static final int HIDDEN_LAYERS = 1;
 
-    private static final int COUNT_HIDDEN_NEURON = 1500 + 1;//Рандомно взял, но больше начального, из-за нейрона смещения + 1
+    private static final int COUNT_HIDDEN_NEURON = 900 + 1;//Рандомно взял, но больше начального, из-за нейрона смещения + 1
     private static final int COUNT_INPUT_NEURON = 900 + 1;//Из-за нейрона смещения + 1
     private static final int COUNT_OUTPUT_NEURON = 33;//Из-за кол-ва букв
 
@@ -19,23 +19,25 @@ public class NeuralNetwork {
 
     private static final int COUNT_EDGE = COUNT_LAYERS - 1;// Количество слоев ребер = Количество слоев нейронов - 1
 
-    private static final int COUNT_EPOCH = 30;// Количество слоев ребер = Количество слоев нейронов - 1
+    private static final int COUNT_EPOCH = 300;// Количество слоев ребер = Количество слоев нейронов - 1
 
     private static final double BIAS_NEURON = 1;// Нейрон смещения /*их можно размещать на входном слое и всех скрытых слоях, но никак не на выходном слое*/
 
     private static final double d = 0.002; // параметр наклона сигмоидальной функции
-    private static final double n = 0.1; // коэффициент скорости обучения
 
-    private static final double SENSITIVITY = 0.02;
+    private static final double SPEED = 0.2; // коэффициент скорости обучения
+    private static final double ALPHA = 0.5;//α (альфа) — момент
+
+    private static final double SENSITIVITY = 0.002;
 
     private int iteration; //Сколько раз нейросеть прошла по trainingSet
 
     private double[][][] weights;//[Количество слоев ребер][Номер левого нейрона][Номер правого нейрона]
+    private double[][][] deltaWeights;//[Количество слоев ребер][Номер левого нейрона][Номер правого нейрона]
 
     private double[][] neurons;//[Номер слоя][Номер нейрона]
     private double[] input;// Входные значения
-    private double[] output;// Выходные значения
-    private int [] layersLength;// Массив хранящий длину каждого слоя
+    private int[] layersLength;// Массив хранящий длину каждого слоя
 
     private int trainingSet;//Нужно рандомизировать подачу тренировочных данных
     private int verifyingSet;
@@ -43,7 +45,7 @@ public class NeuralNetwork {
     public NeuralNetwork() {
         layersLength = new int[COUNT_LAYERS];
         layersLength[0] = COUNT_INPUT_NEURON;
-        for (int i = 1; i < HIDDEN_LAYERS + 1; i++){
+        for (int i = 1; i < HIDDEN_LAYERS + 1; i++) {
             layersLength[i] = COUNT_HIDDEN_NEURON;
         }
         layersLength[layersLength.length - 1] = COUNT_OUTPUT_NEURON;
@@ -61,55 +63,56 @@ public class NeuralNetwork {
         }
     }
 
-    private static int maxLengthLayers(){
-        return COUNT_HIDDEN_NEURON>=COUNT_INPUT_NEURON?COUNT_HIDDEN_NEURON:COUNT_INPUT_NEURON;
+    private static int maxLengthLayers() {
+        return COUNT_HIDDEN_NEURON >= COUNT_INPUT_NEURON ? COUNT_HIDDEN_NEURON : COUNT_INPUT_NEURON;
     }
 
-    public void calculate(int [][] imageArray){
+    public void calculate(int[][] imageArray) {
         double[] tmpArray = convertBinaryArrayToSingle(imageArray);
         loadInput(tmpArray);//Инициированы входные значения, там пропускаем через функцию активации
         neurons = new double[COUNT_LAYERS][maxLengthLayers()];
         neurons[0] = input;
-        int lastTmp = layersLength[0]; //Количество нейронов рассматриваемого слоя
-        int firstTmp; //сохраним сюда индекс первого нейрона рассматриваемого слоя
         double res; // Переменная для подсчета взвешенной суммы
-        for (int i = 1; i < layersLength.length; i++ ) {// Пробегаемся по всем слоям, начиная со 2
-            neurons[i-1][0] = BIAS_NEURON;
-            for(int j = 0; j < layersLength[i]; j++){//Пробегаемся по всем нейронам слоя
+        for (int i = 1; i < layersLength.length; i++) {// Пробегаемся по всем слоям, начиная со 2
+            neurons[i - 1][0] = BIAS_NEURON;
+            for (int j = 0; j < layersLength[i]; j++) {//Пробегаемся по всем нейронам слоя
                 res = 0;
                 /**
                  * Считаем для данного нейрона взвешенную сумму
                  * пробегаясь по нейронам левого слоя
                  * */
-                //TODO еще раз разобраться с нейроном смещения
-                for(int x = 0; x < layersLength[i-1]; x++){
-                    res += neurons[i-1][x]*weights[i-1][x][j];
+                for (int x = 0; x < layersLength[i - 1]; x++) {
+                    res += neurons[i - 1][x] * weights[i - 1][x][j];
                 }
                 /**
                  * Из-за того что res получался всегда 1
                  * нужна использовать нормализацию*/
                 //double norm = normalization(res, i);
-                neurons[i][j]= activate(res);//Прогоняем результат через активационную функцию
+                neurons[i][j] = activate(res);//Прогоняем результат через активационную функцию
             }
         }
         //System.out.println();
+
     }
 
     /**
      * Используется метод обратного распространения //Возможно их несколько вариантов
-     * */
+     */
     public void study(List<Char> chars) {
-        double[] expectedResult = new double[COUNT_OUTPUT_NEURON];//Ожидаемый результат
-        for (int epoch = 0; epoch < COUNT_EPOCH; epoch++){
-            for(Char ch: chars){
+        double[] expectedResult;//Ожидаемый результат
+        double errEpoch;
+        double percent = 0;
+        double step = 100D / COUNT_EPOCH;
+        DecimalFormat decimalFormatter = new DecimalFormat("###.###");
+        decimalFormatter.setMinimumFractionDigits(3);
+        decimalFormatter.setMinimumIntegerDigits(2);
+        deltaWeights = new double[COUNT_EDGE][maxLengthLayers()][maxLengthLayers()];
+        for (int epoch = 0; epoch < COUNT_EPOCH; epoch++) {
+            errEpoch = 0;
+            for (Char ch : chars) {
                 calculate(ch.getImageArray());//TODO тут возможна ошибка
-                int numSym = ch.getNum();
                 int lastLayer = layersLength.length - 1;// номер последнего слоя
                 double weights_delta;//Дельта весов (ошибка*производную активационной функции)
-                double derivative;//производная сигмоида = sigmoid(x)-(1-sigmoid(x))
-                double tmp;//временная переменная для хранения значения активационной функции
-
-                double newWeight;
 
                 expectedResult = getExpectedResult(ch.getNum());
                 /**
@@ -117,84 +120,86 @@ public class NeuralNetwork {
                  * рассчитывая значения для предыдущих нейронов, на основе этого изменяем веса
                  * */
 
+                boolean normalRes = false;
 
-                boolean normalRes;
-
-                for(int i = 0; i < layersLength[lastLayer]; i++){
-                    if (Math.abs(neurons[lastLayer][i] - expectedResult[i]) <= SENSITIVITY) { normalRes = false; }
-                    else { normalRes = true; break; }
+                for (int i = 0; i < layersLength[lastLayer]; i++) {
+                    if (Math.abs(neurons[lastLayer][i] - expectedResult[i]) <= SENSITIVITY) {
+                        normalRes = false;
+                    } else {
+                        normalRes = true;
+                        break;
+                    }
                 }
 
                 double delta = 0;
                 double error = 0;
 
-                for (int i = 0; i < expectedResult.length; i++)
-                {
+                for (int i = 0; i < expectedResult.length; i++) {
                     delta = neurons[lastLayer][i] - expectedResult[i];
                     error += delta * delta;
                 }
-                error /= expectedResult.length;
-                error = Math.sqrt(error);
 
+                errEpoch += Math.sqrt(error / expectedResult.length);
 
-                double[] deltRightLayer = new double[layersLength[lastLayer]];
-                double[] deltLeftLayer = new double[layersLength[lastLayer-1]];
-                //boolean res;
+                if(normalRes){
+                    double[] deltRightLayer = new double[layersLength[lastLayer]];
+                    double[] deltLeftLayer = new double[layersLength[lastLayer - 1]];
 
-                //double difOut;
-                for(int j = lastLayer; j >= 0; j--) {//Начинаем с конечного слоя. Текущий (правый) слой
-                    //if(j != lastLayer) deltLeftLayer = new double[layersLength[j]];
-                    for(int i = 0; i < layersLength[j]; i++){//Пробегаемся по всем нейронам СНАЧАЛА текущего(правого) ПОТОТМ ЛЕВОГО слоя
-                        if(j == lastLayer){
-                            //deltRightLayer[i] = Math.abs(neurons[lastLayer][i] - expectedResult);// Здесь рассчиытваем ошибки нейронов //TODO ВОЗМОЖНО АКТИВАЦИОННУЮ ФУНКЦИЮ НАДО ПРИМЕНЯТЬ
-                            deltRightLayer[i] = (expectedResult[i] - neurons[lastLayer][i]) * activateDerivative(neurons[lastLayer][i]);// TODO ВОЗМОЖНО НУЖНА ОТДЕЛЬНАЯ ФУНКЦИЯ
-                            /**
-                             * ошибка_левого_нейрона_версии_2 = (ожидаемый - текущий) * текущий * (1 - текущий)
-                             * текущий - результат уже пропущенный через активационную функцию для нейрона у которого рассчитываем ошибку
-                             * http://microtechnics.ru/obuchenie-nejronnoj-seti-algoritm-obratnogo-rasprostraneniya-oshibok/?fdx_switcher=true
-                             * */
-                            if(Math.abs(deltRightLayer[i]) <= SENSITIVITY) break;// Если верно не корректируем веса TODO ОШИБКА СЧИТАЕТСЯ ОБЩАЯ У МЕНЯ ОШИБКА ЭТО ДЕЛЬТА ЭТО УСЛОВИЕ ДОЛЖНО БЫТЬ ВЫШЕ
-                        }
-                        else {
-                            /**
-                             * ошибка для внутренних нейронов рассчитывается
-                             * error = вес_ребра_до_нейрона_справа(1)*ошибка_нейрона_справа(1) ... + вес_ребра_до_нейрона_справа(n)*ошибка_нейрона_справа(n)
-                             * http://robocraft.ru/blog/algorithm/560.html
-                             *
-                             * ошибка_левого_нейрона_версии_2 =  сумма_их_всех((ошибка_нейрона_справа_K*вес_до_нейрона_справа_К)) * текущий * (1 - текущий)
-                             * http://microtechnics.ru/obuchenie-nejronnoj-seti-algoritm-obratnogo-rasprostraneniya-oshibok/?fdx_switcher=true
-                             * дельта_весов = коэффициент_скорости_обучения * ошибка_правого_нейрона_версии_2 * результат_левого_нейрона_после_активационной_функции(текущий)
-                             * новый вес = вес + дельта_весов;
-                             * */
-                            if (j!=0){
-                                for(int k = 0; k < deltRightLayer.length; k++){// Считаем сумму дельт
-                                    deltLeftLayer[i] += deltRightLayer[k] * weights[j][i][k];
-                                    //deltLeftLayer[i] += deltRightLayer[k] * weights[j][i][k];//TODO ВОЗМОЖНО J-1 НЕВЕРНО
-                                }
-                                deltLeftLayer[i] *= activateDerivative(neurons[j][i]);
-                            }
-                            //if(j < lastLayer-1) deltRightLayer = deltLeftLayer;//TODO УСЛОВИЕ БЫЛО ЗДЕСЬ
-                            for(int k = 0; k < deltRightLayer.length; k++){
-                        /*tmp = activate(neurons[j+1][k]);
-                        derivative = tmp * (1 - tmp);//производная сигмоида = sigmoid(x)*(1-sigmoid(x))*/
-                                weights_delta = n * deltRightLayer[k] * neurons[j][i];//TODO И ПОХОЖЕ КОРРЕКТИРОВКУ ВЕСОВ МЕНЯТЬ
-                                weights[j][i][k] +=  weights_delta;
-                                //System.out.println(weights[j][i][k]);
-                                //double[][][] weights;//[Количество слоев ребер][Номер левого нейрона][Номер правого нейрона]
+                    for (int j = lastLayer; j >= 0; j--) {//Начинаем с конечного слоя. Текущий (правый) слой
+                        for (int i = 0; i < layersLength[j]; i++) {//Пробегаемся по всем нейронам СНАЧАЛА текущего(правого) ПОТОТМ ЛЕВОГО слоя
+                            if (j == lastLayer) {
+                                deltRightLayer[i] = (expectedResult[i] - neurons[lastLayer][i]) * activateDerivative(neurons[lastLayer][i]);// TODO ВОЗМОЖНО НУЖНА ОТДЕЛЬНАЯ ФУНКЦИЯ
                                 /**
-                                 *формула для расчета нового веса   newWeight = oldWeight + коэффициент_скорости_обучения * значения_выходного_нейрона(слева) * дельту_весов(нейрона справа)
+                                 * ошибка_левого_нейрона_версии_2 = (ожидаемый - текущий) * текущий * (1 - текущий)
+                                 * текущий - результат уже пропущенный через активационную функцию для нейрона у которого рассчитываем ошибку
+                                 * http://microtechnics.ru/obuchenie-nejronnoj-seti-algoritm-obratnogo-rasprostraneniya-oshibok/?fdx_switcher=true
                                  * */
+                                if (Math.abs(deltRightLayer[i]) <= SENSITIVITY)
+                                    break;// Если верно не корректируем веса TODO ОШИБКА СЧИТАЕТСЯ ОБЩАЯ У МЕНЯ ОШИБКА ЭТО ДЕЛЬТА ЭТО УСЛОВИЕ ДОЛЖНО БЫТЬ ВЫШЕ
+                            } else {
+                                /**
+                                 * ошибка для внутренних нейронов рассчитывается
+                                 * error = вес_ребра_до_нейрона_справа(1)*ошибка_нейрона_справа(1) ... + вес_ребра_до_нейрона_справа(n)*ошибка_нейрона_справа(n)
+                                 * http://robocraft.ru/blog/algorithm/560.html
+                                 *
+                                 * ошибка_левого_нейрона_версии_2 =  сумма_их_всех((ошибка_нейрона_справа_K*вес_до_нейрона_справа_К)) * текущий * (1 - текущий)
+                                 * http://microtechnics.ru/obuchenie-nejronnoj-seti-algoritm-obratnogo-rasprostraneniya-oshibok/?fdx_switcher=true
+                                 * дельта_весов = коэффициент_скорости_обучения * ошибка_правого_нейрона_версии_2 * результат_левого_нейрона_после_активационной_функции(текущий)
+                                 * новый вес = вес + дельта_весов;
+                                 * */
+                                if (j != 0) {
+                                    for (int k = 0; k < deltRightLayer.length; k++) {// Считаем сумму дельт
+                                        deltLeftLayer[i] += deltRightLayer[k] * weights[j][i][k];
+                                    }
+                                    deltLeftLayer[i] *= activateDerivative(neurons[j][i]);
+                                }
+                                for (int k = 0; k < deltRightLayer.length; k++) {
+                                    weights_delta = SPEED * deltRightLayer[k] * neurons[j][i] + ALPHA * deltaWeights[j][i][k];//TODO И ПОХОЖЕ КОРРЕКТИРОВКУ ВЕСОВ МЕНЯТЬ
+                                    deltaWeights[j][i][k] = weights_delta;
+                                    weights[j][i][k] += weights_delta;
+                                    /**
+                                     *формула для расчета нового веса   newWeight = oldWeight + коэффициент_скорости_обучения * значения_выходного_нейрона(слева) * дельту_весов(нейрона справа)
+                                     * */
+                                }
                             }
                         }
-                    }
-                    if(j < lastLayer) {
-                        deltRightLayer = deltLeftLayer;
-                        if(j - 1 > 0) {
-                            deltLeftLayer = new double[layersLength[j-1]];
+                        if (j < lastLayer) {
+                            deltRightLayer = deltLeftLayer;
+                            if (j - 1 > 0) {
+                                deltLeftLayer = new double[layersLength[j - 1]];
+                            }
                         }
+                        //System.out.println();
                     }
-                    //System.out.println();
                 }
+
+            }
+            errEpoch /= COUNT_INPUT_NEURON;
+            percent += step;
+            //System.out.println("Wait studying: " +  decimalFormatter.format(percent) + "%");
+            System.out.println("Ошибка эпохи:" + errEpoch);
+            if (errEpoch < SENSITIVITY) {
+                break;
             }
             Collections.shuffle(chars);
         }
@@ -210,7 +215,6 @@ public class NeuralNetwork {
     }
 
     private void loadInput(double[] newInput) {
-        //input = new double[newInput.length];
         input = newInput;
         for (int i = 0; i < newInput.length; i++) {
             input[i] = activate(newInput[i]);//Специально использовал функцию активации, хоть значения 1 и 0, чтобы потом не забыть
@@ -218,36 +222,37 @@ public class NeuralNetwork {
         }
     }
 
-    public double normalization(double x, int numLayer){
-        return x/(layersLength[numLayer]);
+    public double normalization(double x, int numLayer) {
+        return x / (layersLength[numLayer]);
     }
 
-    private double activate(double x){// Функция активации (Нормальзации значения [0;1])
-        return (1 / (1 + Math.pow(Math.E, -(d*x))));//Сигмоид
+    private double activate(double x) {// Функция активации (Нормальзации значения [0;1])
+        return (1 / (1 + Math.pow(Math.E, -(d * x))));//Сигмоид
     }
-    private double activateDerivative(double x){// Производная активационной функции
+
+    private double activateDerivative(double x) {// Производная активационной функции
         return (1 - x) * x;//Сигмоид
     }
 
-    private double[] convertBinaryArrayToSingle(int [][] imageArray){
+    private double[] convertBinaryArrayToSingle(int[][] imageArray) {
         int k = 0;
         double[] tmpArray = new double[COUNT_INPUT_NEURON];//Возможно заменить на imageArray.length * imageArray[0].length
         //tmpArray[0] = BIAS_NEURON;//Инициализация нейрона смещения
-        for (int i = 0; i < imageArray.length; i++){
-            for(int j = 0; j < imageArray[i].length; j++){
+        for (int i = 0; i < imageArray.length; i++) {
+            for (int j = 0; j < imageArray[i].length; j++) {
                 tmpArray[++k] = (double) imageArray[i][j];
             }
         }
         return tmpArray;
     }
 
-    public static void fillRandomDouble(double[][][] weightsArray, int[] layersLength) {
+    private static void fillRandomDouble(double[][][] weightsArray, int[] layersLength) {
         double rangeMin = 0.0f;
         double rangeMax = 1.0f;
         Random r = new Random();
         for (int i = 0; i < COUNT_LAYERS - 1; i++) {//Бежим по слоям
             for (int j = 0; j < layersLength[i]; j++) {
-                for (int k = 0; k < layersLength[i+1]; k++) {
+                for (int k = 0; k < layersLength[i + 1]; k++) {
                     weightsArray[i][j][k] = rangeMin + (rangeMax - rangeMin) * r.nextDouble();
                     //System.out.print(weightsArray[i][j][k]);
                 }
@@ -403,27 +408,26 @@ public class NeuralNetwork {
         throw new IllegalArgumentException("Нет такой буквы");
     }
 
-    public void save(){
+    public void save() {
         NeuroProperties.saveProperty(new NeuroProperties(weights, iteration));
     }
 
-    public void writeResultsForSym(int[][] imageArray){
+    public void writeResultsForSym(int[][] imageArray) {
         calculate(imageArray);//TODO тут возможна ошибка
         DecimalFormat decimalFormatter = new DecimalFormat("###.###");
-        for (int i = 0; i < COUNT_OUTPUT_NEURON; i++){
+        for (int i = 0; i < COUNT_OUTPUT_NEURON; i++) {
             System.out.println(getOutputChar(i) + " " + decimalFormatter.format(getError(i)));
         }
     }
 
-    public double getError(int ch){
+    public double getError(int ch) {
         double[] excpectedResult = getExpectedResult(ch);
 
         double delta = 0;
         double error = 0;
 
-        for (int i = 0; i < excpectedResult.length; i++)
-        {
-            delta = neurons[layersLength.length-1][i] - excpectedResult[i];// Считаем разницу между тем что должно быть и есть
+        for (int i = 0; i < excpectedResult.length; i++) {
+            delta = neurons[layersLength.length - 1][i] - excpectedResult[i];// Считаем разницу между тем что должно быть и есть
             error += delta * delta;//
         }
         error /= excpectedResult.length;

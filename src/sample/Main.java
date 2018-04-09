@@ -32,20 +32,28 @@ public class Main extends Application {
     public Main() {
         neuralNetwork = new NeuralNetwork();
         neuralNetwork.load();
-        //System.out.println(neuralNetwork.activate(35));
         chars = new ArrayList<Char>();
         //System.exit(1);
         loadImages();
-        neuralNetwork.study(chars);
+
+
         Char ch = chars.get(0);
-        char sym = 'И';
+        char sym = 'О';
         for (Char tmp: chars){
             //System.out.print(tmp.getName());
             if (tmp.getName() == sym) {
                 ch = tmp; break;
             }
         }
-        System.out.println("Буква = ["+ ch.getName() +"]");
+
+        System.out.println("Буква = ["+ ch.getName() +"]{"+ ch.getNum() +"}");
+        neuralNetwork.writeResultsForSym(ch.getImageArray());
+
+        neuralNetwork.calculate(ch.getImageArray());
+
+        neuralNetwork.study(chars);
+
+        System.out.println("Буква = ["+ ch.getName() +"]{"+ ch.getNum() +"}");
         neuralNetwork.writeResultsForSym(ch.getImageArray());
         //neuralNetwork.study();
     }
@@ -83,7 +91,7 @@ public class Main extends Application {
                     try {
                         BufferedImage bufferedImage = ImageIO.read(new File(item.getAbsolutePath()));
                         int [][] tmp = imageToArray(bufferedImage);
-                        imageData.add(new Image(item.getPath(), item.getName(), tmp));
+                        imageData.add(new Image(item.getPath(), item.getName(), tmp, item.toURI().toURL().toString()));
                         //neuralNetwork.calculate(tmp);
                         chars.add(new Char(tmp, item.getName().split("\\.")[0].charAt(0)));
                         //neuralNetwork.study('А', tmp);

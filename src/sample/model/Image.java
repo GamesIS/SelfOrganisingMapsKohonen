@@ -9,10 +9,10 @@ public class Image {
     private javafx.scene.image.Image image;
     private int[][] imageArray;
 
-    public Image(String path, String name, int[][] imageArray) {
+    public Image(String path, String name, int[][] imageArray, String url) {
         this.path = new SimpleStringProperty(path);
         this.name = new SimpleStringProperty(name);
-        image = new javafx.scene.image.Image(name);
+        image = new javafx.scene.image.Image(url);
         this.imageArray = imageArray;
     }
 
