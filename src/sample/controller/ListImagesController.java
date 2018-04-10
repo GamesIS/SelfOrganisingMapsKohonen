@@ -3,6 +3,8 @@ package sample.controller;
 import javafx.animation.*;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
@@ -14,17 +16,24 @@ import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.*;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Color;
+import javafx.stage.Stage;
 import javafx.util.Duration;
 import sample.Main;
+import sample.NeuralNetwork;
 import sample.model.Image;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.text.DecimalFormat;
+import java.util.ArrayList;
 
 
 public class ListImagesController {
+    private static ListImagesController controller;
+
     @FXML
     private TableView<Image> imageTable;
     @FXML
@@ -36,37 +45,65 @@ public class ListImagesController {
     private ListView<Image> nameList;
 
     @FXML
+    private ListView<String> resultList;
+
+    @FXML
     private ImageView imageView;
 
     @FXML
     private Canvas canvas;
 
     @FXML
-    public Label frameRate;
+    public Label percent;
     @FXML
     public Label nameLabel;
 
     @FXML
-    public LineChart<Number, Number> convergence; // Сходимость
+    public Button studying;
+
+    @FXML
+    public LineChart<Number, Number> convergence;
 
     @FXML
     NumberAxis xAxisIteration;
     @FXML
     NumberAxis yAxisError;
 
-    /*@FXML
-    Button*/
+    private static ObservableList<String> obResList;
 
+    @FXML
+    public void initialize(){
+        convergence.setTitle("Ошибка от эпохи");
+
+        studying.addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
+            @Override
+            public void handle(MouseEvent mouseEvent) {
+                main.getNeuralNetwork().study(main.getChars());
+            }
+        });
+
+
+        series1 = new XYChart.Series();
+        series1.setName("Portfolio 1");
+
+        convergence.getData().addAll(series1);
+    }
+
+    public XYChart.Series series1;
 
     private Main main;
 
     public ListImagesController() {
+        controller = this;
     }
 
-    @FXML void initialize(){
+    public static ListImagesController getController() {
+        return controller;
+    }
+    /*    @FXML void initialize(){
         pathColumn.setCellValueFactory(cellData -> cellData.getValue().pathProperty());
         nameColumn.setCellValueFactory(cellData -> cellData.getValue().nameProperty());
-    }
+    }*/
 
 
     private int i = 0;
@@ -89,30 +126,25 @@ public class ListImagesController {
 
         imageTable.setItems(main.getImageData());
 
-        //imageTable.setVisible(false);
+        imageTable.setVisible(false);
         nameList.setItems(main.getImageData());
         nameList.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
         imageView.setSmooth(false);
 
-        xAxisIteration.setLabel("Iteration");
+
+        xAxisIteration.setLabel("Epoch");
         yAxisError.setLabel("Error");
         //.setLabel("Month");
 
-        convergence.setTitle("Сходимость");
-        XYChart.Series series1 = new XYChart.Series();
-        series1.setName("Portfolio 1");
 
-        series1.getData().add(new XYChart.Data(0.02, 0.1));
-        series1.getData().add(new XYChart.Data(2, 14));
-        series1.getData().add(new XYChart.Data(3, 15));
-        XYChart.Series series2 = new XYChart.Series();
+
+        /*XYChart.Series series2 = new XYChart.Series();
         series2.setName("Portfolio 2");
 
         series2.getData().add(new XYChart.Data(5, 6));
         series2.getData().add(new XYChart.Data(12, 7));
-        series2.getData().add(new XYChart.Data(22, 8));
-        convergence.getData().addAll(series1);
-        convergence.getData().addAll(series2);
+        series2.getData().add(new XYChart.Data(22, 8));*/
+        //convergence.getData().addAll(series2);
         //System.out.println(imageView.isSmooth());
 
         /*Timeline timelines = new Timeline(new KeyFrame(
@@ -131,6 +163,7 @@ public class ListImagesController {
         timeline.setCycleCount(Animation.INDEFINITE);
         timeline.play();
 */
+        resultList.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
 
         nameList.getSelectionModel().selectedIndexProperty().addListener(new ChangeListener<Number>() {
 
@@ -149,9 +182,19 @@ public class ListImagesController {
 
                     }
                 }
+                main.getNeuralNetwork().calculate(imageArray);
+
+                DecimalFormat decimalFormatter = new DecimalFormat("###.###");
+                decimalFormatter.setMinimumIntegerDigits(2);
+                decimalFormatter.setMinimumFractionDigits(3);
+
+                obResList = FXCollections.observableArrayList();
+                for(int i = 0; i <= 32; i++){
+                    obResList.add("" + NeuralNetwork.getOutputChar(i) + " = "+ decimalFormatter.format(main.getNeuralNetwork().getError(i)) +"%");
+                }
+                resultList.setItems(obResList);
+
             }
-
-
         });
     }
 }

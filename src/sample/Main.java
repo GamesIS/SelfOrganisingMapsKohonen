@@ -29,6 +29,14 @@ public class Main extends Application {
     private NeuralNetwork neuralNetwork;
     private ArrayList<Char> chars;
 
+    public ArrayList<Char> getChars() {
+        return chars;
+    }
+
+    public NeuralNetwork getNeuralNetwork() {
+        return neuralNetwork;
+    }
+
     public Main() {
         neuralNetwork = new NeuralNetwork();
         neuralNetwork.load();
@@ -38,7 +46,7 @@ public class Main extends Application {
 
 
         Char ch = chars.get(0);
-        char sym = 'Ы';
+        char sym = 'Ё';
         for (Char tmp: chars){
             //System.out.print(tmp.getName());
             if (tmp.getName() == sym) {
@@ -46,7 +54,7 @@ public class Main extends Application {
             }
         }
 
-        System.out.println("Буква = ["+ ch.getName() +"]{"+ ch.getNum() +"}");
+        /*System.out.println("Буква = ["+ ch.getName() +"]{"+ ch.getNum() +"}");
         neuralNetwork.writeResultsForSym(ch.getImageArray());
 
         neuralNetwork.calculate(ch.getImageArray());
@@ -54,7 +62,7 @@ public class Main extends Application {
         neuralNetwork.study(chars);
 
         System.out.println("Буква = ["+ ch.getName() +"]{"+ ch.getNum() +"}");
-        neuralNetwork.writeResultsForSym(ch.getImageArray());
+        neuralNetwork.writeResultsForSym(ch.getImageArray());*/
         //neuralNetwork.study();
     }
 
@@ -75,6 +83,8 @@ public class Main extends Application {
         initRootLayout();
 
         showListImages();
+
+        primaryStage.getScene().getStylesheets().add("sample/style.css");
 
     }
 

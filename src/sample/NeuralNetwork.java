@@ -1,6 +1,8 @@
 package sample;
 
 import com.sun.org.apache.xpath.internal.SourceTree;
+import javafx.scene.chart.XYChart;
+import sample.controller.ListImagesController;
 import sample.model.NeuroProperties;
 
 import java.text.DecimalFormat;
@@ -9,9 +11,9 @@ import java.util.List;
 import java.util.Random;
 
 public class NeuralNetwork {
-    private static final int HIDDEN_LAYERS = 1;
+    private static final int HIDDEN_LAYERS = 2;
 
-    private static final int COUNT_HIDDEN_NEURON = 20 + 1;//Рандомно взял, но больше начального, из-за нейрона смещения + 1
+    private static final int COUNT_HIDDEN_NEURON = 100 + 1;//Рандомно взял, но больше начального, из-за нейрона смещения + 1
     private static final int COUNT_INPUT_NEURON = 900 + 1;//Из-за нейрона смещения + 1
     private static final int COUNT_OUTPUT_NEURON = 33;//Из-за кол-ва букв
 
@@ -195,8 +197,12 @@ public class NeuralNetwork {
 
             }
             errEpoch /= COUNT_INPUT_NEURON;
-            percent += step;
-            //System.out.println("Wait studying: " +  decimalFormatter.format(percent) + "%");
+            //percent += step;
+            //ListImagesController.getController().percent.setText(decimalFormatter.format(percent));
+            XYChart.Series series = ListImagesController.getController().series1;
+            series.getData().add(new XYChart.Data(epoch, errEpoch));
+            //ListImagesController.getController().convergence.getData().addAll(series);
+
             System.out.println("Ошибка эпохи:" + errEpoch);
             if (errEpoch < SENSITIVITY) {
                 break;
