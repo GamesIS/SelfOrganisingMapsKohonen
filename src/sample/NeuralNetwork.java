@@ -11,9 +11,9 @@ import java.util.List;
 import java.util.Random;
 
 public class NeuralNetwork {
-    private static final int HIDDEN_LAYERS = 2;
+    private static final int HIDDEN_LAYERS = 1;
 
-    private static final int COUNT_HIDDEN_NEURON = 100 + 1;//Рандомно взял, но больше начального, из-за нейрона смещения + 1
+    private static final int COUNT_HIDDEN_NEURON = 70 + 1;
     private static final int COUNT_INPUT_NEURON = 900 + 1;//Из-за нейрона смещения + 1
     private static final int COUNT_OUTPUT_NEURON = 33;//Из-за кол-ва букв
 
@@ -21,16 +21,16 @@ public class NeuralNetwork {
 
     private static final int COUNT_EDGE = COUNT_LAYERS - 1;// Количество слоев ребер = Количество слоев нейронов - 1
 
-    private static final int COUNT_EPOCH = 3000;// Количество слоев ребер = Количество слоев нейронов - 1
+    private static final int COUNT_EPOCH = 10000;// Количество слоев ребер = Количество слоев нейронов - 1
 
     private static final double BIAS_NEURON = 1;// Нейрон смещения /*их можно размещать на входном слое и всех скрытых слоях, но никак не на выходном слое*/
 
     private static final double d = 1; // параметр наклона сигмоидальной функции
 
-    private static final double SPEED = 0.05; // коэффициент скорости обучения
-    private static final double ALPHA = 0.005;//α (альфа) — момент
+    private static final double SPEED = 0.03; // коэффициент скорости обучения
+    private static final double ALPHA = 0.0005;//α (альфа) — момент
 
-    private static final double SENSITIVITY = 0.000002;
+    private static final double SENSITIVITY = 0.0000000002;
 
     private int iteration; //Сколько раз нейросеть прошла по trainingSet
 
@@ -61,7 +61,7 @@ public class NeuralNetwork {
         } else {
             weights = new double[COUNT_EDGE][maxLengthLayers()][maxLengthLayers()];
             NeuralNetwork.fillRandomDouble(weights, layersLength);
-            //NeuroProperties.saveProperty(new NeuroProperties(weights, iteration));
+            NeuroProperties.saveProperty(new NeuroProperties(weights, iteration));
         }
     }
 
