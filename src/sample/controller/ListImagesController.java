@@ -16,10 +16,14 @@ import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.*;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.GridPane;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
 import javafx.util.Duration;
+import sample.Char;
 import sample.Main;
 import sample.NeuralNetwork;
 import sample.model.Image;
@@ -29,6 +33,8 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 
 public class ListImagesController {
@@ -57,6 +63,9 @@ public class ListImagesController {
     private Canvas drawCanvas;
 
     @FXML
+    private GridPane drawGrid;
+
+    @FXML
     public Label percent;
 
     @FXML
@@ -64,6 +73,16 @@ public class ListImagesController {
 
     @FXML
     public Button studying;
+    @FXML
+    public Button clear;
+    @FXML
+    public Button recognize;
+    @FXML
+    public Button save;
+
+    @FXML
+    public TextField nameChar;
+
     @FXML
     public javafx.scene.image.Image image;
 
@@ -90,15 +109,71 @@ public class ListImagesController {
         });
 
 
+        clear.addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
+            @Override
+            public void handle(MouseEvent mouseEvent) {
+                for(int i = 0; i < rec.length; i++ ){
+                    for(int j = 0; j< rec[i].length; j++){
+                        rec[i][j].setFill(Color.WHITE);
+                    }
+                }
+            }
+        });
+        recognize.addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
+            @Override
+            public void handle(MouseEvent mouseEvent) {
+                int[][] imageArray = getDrawImageArray();
+                main.getNeuralNetwork().calculate(imageArray);
+                writePercent();
+            }
+        });
+        save.addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
+            @Override
+            public void handle(MouseEvent mouseEvent) {
+                String chName = nameChar.getText();
+                if(chName != null && chName.length() == 1){
+                    char charAt = chName.charAt(0);
+                    try {
+                        NeuralNetwork.getOutputNumber(charAt);
+                        Char ch = new Char(getDrawImageArray(), charAt);
+                        Char.saveChar(ch);
+                        main.getChars().add(ch);
+                    }
+                    catch (Exception e){
+                        e.printStackTrace();
+                    }
+                }
+            }
+        });
+
+
+
         series1 = new XYChart.Series();
-        series1.setName("Portfolio 1");
+        series1.setName("Зависимость ошибки от эпохи");
 
         convergence.getData().addAll(series1);
+    }
+
+    private int[][] getDrawImageArray(){
+        int[][] imageArray = new int[COUNT_PIXEL][COUNT_PIXEL];
+        for(int i = 0; i < rec.length; i++ ){
+            for(int j = 0; j< rec[i].length; j++){
+                if(rec[i][j].getFill() == Color.RED){
+                    imageArray[i][j] = 1;
+                }
+            }
+        }
+        return imageArray;
     }
 
     public XYChart.Series series1;
 
     private Main main;
+
+    private static final int WIDTH_RECTANGLE = 15;
+    private static final int COUNT_PIXEL = 30;
+
+    private Rectangle[][] rec;
 
     public ListImagesController() {
         controller = this;
@@ -162,39 +237,9 @@ public class ListImagesController {
         xAxisIteration.setLabel("Epoch");
         yAxisError.setLabel("Error");
 
-        drawCanvas.setVisible(false);
+        canvas.setVisible(false);
 
-        GraphicsContext gc = drawCanvas.getGraphicsContext2D();
-
-        canvas.addEventHandler(MouseEvent.MOUSE_PRESSED,
-                new EventHandler<MouseEvent>(){
-
-                    @Override
-                    public void handle(MouseEvent event) {
-                        gc.beginPath();
-                        gc.moveTo(event.getX(), event.getY());
-                        gc.stroke();
-                    }
-                });
-
-        canvas.addEventHandler(MouseEvent.MOUSE_DRAGGED,
-                new EventHandler<MouseEvent>(){
-
-                    @Override
-                    public void handle(MouseEvent event) {
-                        gc.lineTo(event.getX(), event.getY());
-                        gc.stroke();
-                    }
-                });
-
-        canvas.addEventHandler(MouseEvent.MOUSE_RELEASED,
-                new EventHandler<MouseEvent>(){
-
-                    @Override
-                    public void handle(MouseEvent event) {
-
-                    }
-                });
+        makeGrid();
 
 
         //.setLabel("Month");
@@ -247,17 +292,114 @@ public class ListImagesController {
                 }
                 main.getNeuralNetwork().calculate(imageArray);
 
-                DecimalFormat decimalFormatter = new DecimalFormat("###.###");
-                decimalFormatter.setMinimumIntegerDigits(2);
-                decimalFormatter.setMinimumFractionDigits(3);
-
-                obResList = FXCollections.observableArrayList();
-                for(int i = 0; i <= 32; i++){
-                    obResList.add("" + NeuralNetwork.getOutputChar(i) + " = "+ decimalFormatter.format(main.getNeuralNetwork().getError(i)) +"%");
-                }
-                resultList.setItems(obResList);
+                writePercent();
 
             }
         });
+    }
+
+    private void writePercent(){
+        DecimalFormat decimalFormatter = new DecimalFormat("###.###");
+        decimalFormatter.setMinimumIntegerDigits(2);
+        decimalFormatter.setMinimumFractionDigits(3);
+
+        obResList = FXCollections.observableArrayList();
+
+
+        List<Sorted> sortList = new ArrayList<>();
+        for(int i = 0; i <= 32; i++){
+            double error = main.getNeuralNetwork().getError(i);
+            sortList.add(new Sorted("" + NeuralNetwork.getOutputChar(i) + " = " + decimalFormatter.format(error) +"%", error));
+
+            //obResList.add("" + NeuralNetwork.getOutputChar(i) + " = "+ decimalFormatter.format(main.getNeuralNetwork().getError(i)) +"%");
+        }
+        System.out.println();
+        Collections.sort(sortList);
+
+        for(int i = sortList.size() - 1; i >= 0 ; i--){
+            obResList.add(sortList.get(i).strVal);
+        }
+        resultList.setItems(obResList);
+        System.out.println();
+    }
+
+    class Sorted implements Comparable{
+        String strVal;
+        double dblVal;
+
+        public Sorted() {
+        }
+
+        public Sorted(String strVal, double dblVal) {
+            this.strVal = strVal;
+            this.dblVal = dblVal;
+        }
+
+        @Override
+        public int compareTo(Object o) {
+            Sorted oSort = (Sorted) o;
+            if (oSort.dblVal > this.dblVal) return -1;
+            if (oSort.dblVal < this.dblVal) return 1;
+            return 0;
+        }
+    }
+
+    public GridPane makeGrid(){
+
+        drawGrid.setGridLinesVisible(true);
+        rec = new Rectangle [COUNT_PIXEL][COUNT_PIXEL];
+
+        for(int i=0; i< rec.length ; i++){
+            for(int j=0; j< rec[i].length; j++){
+                rec[i][j] = new Rectangle();
+                rec[i][j].setX(i * WIDTH_RECTANGLE);
+                rec[i][j].setY(j * WIDTH_RECTANGLE);
+                rec[i][j].setWidth(WIDTH_RECTANGLE);
+                rec[i][j].setHeight(WIDTH_RECTANGLE);
+                rec[i][j].setFill(null);
+                rec[i][j].setStroke(Color.BLACK);
+                //p.getChildren().add(rec[i][j]);
+                drawGrid.add(rec[i][j], i, j);
+            }
+        }
+
+        drawGrid.addEventHandler(MouseEvent.MOUSE_DRAGGED, new EventHandler<MouseEvent>(){
+            @Override
+            public void handle(MouseEvent event) {
+                draw(event);
+            }
+        });
+
+        drawGrid.setOnMouseClicked(new EventHandler<MouseEvent>(){
+            @Override
+            public void handle(MouseEvent event){
+                draw(event);
+            }
+        });
+
+        return drawGrid;
+    }
+
+    private void draw(MouseEvent event){
+        double posX = event.getX();
+        double posY = event.getY();
+
+        System.out.println("posX = "+ posX +" posY = "+ posY);
+
+        posX -= (posX / 15);
+        posY -= (posY / 15);
+
+        int colX = (int)((posX / WIDTH_RECTANGLE)) ;
+        int colY = (int)((posY / WIDTH_RECTANGLE)) ;
+        System.out.println("colX = "+ colX +" colY = "+colY);
+
+        if(colX < COUNT_PIXEL && colY < COUNT_PIXEL){
+            if (event.getButton() == MouseButton.SECONDARY){
+                rec[colX][colY].setFill(Color.WHITE);
+            }
+            else {
+                rec[colX][colY].setFill(Color.RED);
+            }
+        }
     }
 }

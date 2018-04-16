@@ -6,14 +6,12 @@ import sample.controller.ListImagesController;
 import sample.model.NeuroProperties;
 
 import java.text.DecimalFormat;
-import java.util.Collections;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 
 public class NeuralNetwork {
-    private static final int HIDDEN_LAYERS = 1;
+    private static final int HIDDEN_LAYERS = 2;
 
-    private static final int COUNT_HIDDEN_NEURON = 70 + 1;
+    private static final int COUNT_HIDDEN_NEURON = 100 + 1;
     private static final int COUNT_INPUT_NEURON = 900 + 1;//Из-за нейрона смещения + 1
     private static final int COUNT_OUTPUT_NEURON = 33;//Из-за кол-ва букв
 
@@ -21,16 +19,18 @@ public class NeuralNetwork {
 
     private static final int COUNT_EDGE = COUNT_LAYERS - 1;// Количество слоев ребер = Количество слоев нейронов - 1
 
-    private static final int COUNT_EPOCH = 10000;// Количество слоев ребер = Количество слоев нейронов - 1
+    private static final int COUNT_EPOCH = 2000;// Количество слоев ребер = Количество слоев нейронов - 1
 
     private static final double BIAS_NEURON = 1;// Нейрон смещения /*их можно размещать на входном слое и всех скрытых слоях, но никак не на выходном слое*/
 
     private static final double d = 1; // параметр наклона сигмоидальной функции
 
-    private static final double SPEED = 0.03; // коэффициент скорости обучения
-    private static final double ALPHA = 0.0005;//α (альфа) — момент
+    private static final double SPEED = 0.008; // коэффициент скорости обучения
+    //private static final double SPEED = 0.03; // коэффициент скорости обучения
+    private static final double ALPHA = 0.00005;//α (альфа) — момент
+    //private static final double ALPHA = 0.0005;//α (альфа) — момент
 
-    private static final double SENSITIVITY = 0.0000000002;
+    private static final double SENSITIVITY = 0.0000000000002;
 
     private int iteration; //Сколько раз нейросеть прошла по trainingSet
 
@@ -105,6 +105,11 @@ public class NeuralNetwork {
         double errEpoch;
         double percent = 0;
         double step = 100D / COUNT_EPOCH;
+        long ms = System.currentTimeMillis();
+        boolean time = true;
+        long hour;
+        long minutes;
+        long seconds;
         DecimalFormat decimalFormatter = new DecimalFormat("###.###");
         decimalFormatter.setMinimumFractionDigits(3);
         decimalFormatter.setMinimumIntegerDigits(2);
@@ -196,14 +201,24 @@ public class NeuralNetwork {
                 }
 
             }
+            if (time){
+                ms = System.currentTimeMillis() - ms;
+                long msTosec = (ms * COUNT_EPOCH / 1000);
+                hour = msTosec / (60*60);
+                long tmp = msTosec % (60*60);
+                minutes = tmp / (60);
+                seconds = tmp % (60);
+                System.out.println("Примерное время расчета = ["+ hour +":"+ minutes +":"+ seconds + "]");
+                time = false;
+            }
             errEpoch /= COUNT_INPUT_NEURON;
-            //percent += step;
+            percent += step;
             //ListImagesController.getController().percent.setText(decimalFormatter.format(percent));
             XYChart.Series series = ListImagesController.getController().series1;
             series.getData().add(new XYChart.Data(epoch, errEpoch));
             //ListImagesController.getController().convergence.getData().addAll(series);
 
-            System.out.println("Ошибка эпохи:" + errEpoch);
+            System.out.println("Ошибка эпохи:" + errEpoch + "  ["+ decimalFormatter.format(percent) +"]");
             if (errEpoch < SENSITIVITY) {
                 break;
             }

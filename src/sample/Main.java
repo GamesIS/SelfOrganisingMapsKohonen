@@ -16,10 +16,9 @@ import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Map;
+import java.util.*;
+
+import static sample.Char.loadChars;
 
 public class Main extends Application {
     public static final String RESOURCES_PATH = new File("resources").getAbsolutePath();
@@ -27,9 +26,9 @@ public class Main extends Application {
     private BorderPane rootLayout;
     private ObservableList<Image> imageData = FXCollections.observableArrayList();
     private NeuralNetwork neuralNetwork;
-    private ArrayList<Char> chars;
+    private List<Char> chars;
 
-    public ArrayList<Char> getChars() {
+    public List<Char> getChars() {
         return chars;
     }
 
@@ -43,6 +42,7 @@ public class Main extends Application {
         chars = new ArrayList<Char>();
         //System.exit(1);
         loadImages();
+        chars.addAll(Char.loadChars());
 
 
         Char ch = chars.get(0);
@@ -53,6 +53,7 @@ public class Main extends Application {
                 ch = tmp; break;
             }
         }
+        //load
 
         /*System.out.println("Буква = ["+ ch.getName() +"]{"+ ch.getNum() +"}");
         neuralNetwork.writeResultsForSym(ch.getImageArray());
@@ -88,6 +89,44 @@ public class Main extends Application {
 
     }
 
+    public void loadTxt(){
+        //ObservableList<Image> list = FXCollections.observableArrayList();
+        File dir = new File(RESOURCES_PATH);
+        if(dir.isDirectory())
+        {
+            // получаем все вложенные объекты в каталоге
+            for(File item : dir.listFiles()){
+
+                if(!item.isDirectory()){
+                    //System.out.println(item.getName() + "  \tфайл");
+                    try {
+                        BufferedImage bufferedImage = ImageIO.read(new File(item.getAbsolutePath()));
+                        int [][] tmp = imageToArray(bufferedImage);
+                        imageData.add(new Image(item.getPath(), item.getName(), tmp, item.toURI().toURL().toString()));
+                        //neuralNetwork.calculate(tmp);
+                        char ch = item.getName().split("\\.")[0].charAt(0);
+                        chars.add(new Char(tmp, item.getName().split("\\.")[0].charAt(0)));
+                        //neuralNetwork.study('А', tmp);
+                        //TODO DELETE
+                        //break;
+                    }
+                    catch (Exception e){
+                        e.printStackTrace();
+                    }
+                }
+                else{
+                    //System.out.println(item.getName() + "\tкаталог");
+                }
+            }
+        }
+
+        FXCollections.sort(imageData, new Comparator<Image>() {
+            public int compare(Image o1, Image o2) {
+                return o1.getName().compareTo(o2.getName());
+            }
+        });
+    }
+
     public void loadImages(){
         //ObservableList<Image> list = FXCollections.observableArrayList();
         File dir = new File(RESOURCES_PATH);
@@ -103,6 +142,7 @@ public class Main extends Application {
                         int [][] tmp = imageToArray(bufferedImage);
                         imageData.add(new Image(item.getPath(), item.getName(), tmp, item.toURI().toURL().toString()));
                         //neuralNetwork.calculate(tmp);
+                        char ch = item.getName().split("\\.")[0].charAt(0);
                         chars.add(new Char(tmp, item.getName().split("\\.")[0].charAt(0)));
                         //neuralNetwork.study('А', tmp);
                         //TODO DELETE

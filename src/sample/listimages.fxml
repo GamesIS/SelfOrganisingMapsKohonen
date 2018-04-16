@@ -8,8 +8,10 @@
 <?import javafx.scene.control.ListView?>
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.GridPane?>
 
 <AnchorPane prefHeight="800.0" prefWidth="1000.0" xmlns="http://javafx.com/javafx/8.0.141" xmlns:fx="http://javafx.com/fxml/1" fx:controller="sample.controller.ListImagesController">
    <children>
@@ -22,7 +24,7 @@
       <ListView fx:id="nameList" layoutX="786.0" layoutY="21.0" prefHeight="200.0" prefWidth="200.0" />
       <ImageView fx:id="imageView" fitHeight="200.0" fitWidth="200.0" layoutX="786.0" layoutY="233.0" pickOnBounds="true" preserveRatio="true" />
       <Canvas fx:id="canvas" height="600.0" layoutX="14.0" layoutY="14.0" width="600.0" />
-      <Label fx:id="percent" layoutX="637.0" layoutY="13.0" text="Label" />
+      <Label fx:id="percent" layoutX="25.0" layoutY="734.0" text="Левой рисуешь, правой стираешь" />
       <LineChart fx:id="convergence" layoutX="556.0" layoutY="415.0" prefHeight="371.0" prefWidth="428.0">
         <xAxis>
           <NumberAxis side="BOTTOM" fx:id="xAxisIteration" />
@@ -33,6 +35,11 @@
       </LineChart>
       <ListView fx:id="resultList" layoutX="602.0" layoutY="35.0" prefHeight="379.0" prefWidth="184.0" />
       <Button fx:id="studying" layoutX="408.0" layoutY="648.0" mnemonicParsing="false" prefHeight="63.0" prefWidth="136.0" text="Обучение" />
-      <Canvas fx:id="drawCanvas" height="600.0" layoutX="24.0" layoutY="24.0" width="600.0" />
+      <GridPane fx:id="drawGrid" layoutX="25.0" layoutY="32.0" prefHeight="607.0" prefWidth="551.0">
+      </GridPane>
+      <Button fx:id="clear" layoutX="118.0" layoutY="648.0" mnemonicParsing="false" prefHeight="63.0" prefWidth="136.0" text="Очистить" />
+      <Button fx:id="recognize" layoutX="264.0" layoutY="648.0" mnemonicParsing="false" prefHeight="63.0" prefWidth="136.0" text="Распознать" />
+      <Button fx:id="save" layoutX="408.0" layoutY="723.0" mnemonicParsing="false" prefHeight="63.0" prefWidth="136.0" text="Сохранить" />
+      <TextField fx:id="nameChar" layoutX="254.0" layoutY="742.0" />
    </children>
 </AnchorPane>
