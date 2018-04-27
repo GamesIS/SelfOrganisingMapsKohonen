@@ -1,16 +1,14 @@
 package sample.controller;
 
-import javafx.animation.*;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.event.ActionEvent;
+import javafx.concurrent.Task;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
-import javafx.scene.chart.CategoryAxis;
 import javafx.scene.chart.LineChart;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
@@ -21,16 +19,12 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.GridPane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
-import javafx.stage.Stage;
-import javafx.util.Duration;
 import sample.Char;
 import sample.Main;
 import sample.NeuralNetwork;
+import sample.StudyingThread;
 import sample.model.Image;
 
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
-import java.io.File;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -52,6 +46,9 @@ public class ListImagesController {
 
     @FXML
     private ListView<String> resultList;
+
+    @FXML
+    private ListView<Char> customList;
 
     @FXML
     private ImageView imageView;
@@ -96,6 +93,8 @@ public class ListImagesController {
 
     private static ObservableList<String> obResList;
 
+    private static StudyingThread studyingThread;
+
     @FXML
     public void initialize(){
         convergence.setTitle("Ошибка от эпохи");
@@ -103,8 +102,24 @@ public class ListImagesController {
         studying.addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
             @Override
             public void handle(MouseEvent mouseEvent) {
-                main.getNeuralNetwork().study(main.getChars());
-                main.getNeuralNetwork().save();
+
+                studyingThread = new StudyingThread(main.getNeuralNetwork(), main.getChars());
+                Thread myThready = new Thread(studyingThread);	//Создание потока "myThready"
+
+                myThready.start();
+
+  /*              Task<Void> task = new Task<Void>() {
+                    @Override protected Void call() throws Exception {
+                        main.getNeuralNetwork().study(main.getChars());
+                        main.getNeuralNetwork().save();
+                        return null;
+                    }
+                };
+                ProgressBar bar = new ProgressBar();
+                bar.progressProperty().bind(task.progressProperty());
+                new Thread(task).start();*/
+                //main.getNeuralNetwork().study(main.getChars());
+                //main.getNeuralNetwork().save();
             }
         });
 
@@ -189,19 +204,6 @@ public class ListImagesController {
 
 
     private int i = 0;
-    public void testNext(){
-        int[][] imageArray = imageTable.getItems().get(i).getImageArray();
-        GraphicsContext gc = canvas.getGraphicsContext2D();
-        for(int i = 0; i < imageArray.length; i++){
-            for (int j = 0; j < imageArray[i].length; j++){
-                if(imageArray[j][i] == 0) gc.setFill(Color.WHITE);
-                else gc.setFill(Color.BLACK);
-                gc.fillRect(20*i,20*j,20,20);
-            }
-        }
-        if(i!=imageTable.getItems().size()-1) i++;
-        else i=0;
-    }
 
     private void initDraw(GraphicsContext gc){
         double canvasWidth = gc.getCanvas().getWidth();
@@ -230,6 +232,8 @@ public class ListImagesController {
 
         imageTable.setVisible(false);
         nameList.setItems(main.getImageData());
+
+
         nameList.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
         imageView.setSmooth(false);
 
@@ -242,12 +246,22 @@ public class ListImagesController {
         makeGrid();
 
 
+
+        ObservableList<Char> chars = FXCollections.observableArrayList();
+
+        chars.addAll(Char.loadChars());
+
+
+
+        customList.setItems(chars);
+
+
         //.setLabel("Month");
 
 
 
         /*XYChart.Series series2 = new XYChart.Series();
-        series2.setName("Portfolio 2");
+        series2.setWord("Portfolio 2");
 
         series2.getData().add(new XYChart.Data(5, 6));
         series2.getData().add(new XYChart.Data(12, 7));
@@ -284,16 +298,38 @@ public class ListImagesController {
                 int[][] imageArray = image.getImageArray();
                 for(int i = 0; i < imageArray.length; i++){
                     for (int j = 0; j < imageArray[i].length; j++){
-                        if(imageArray[j][i] == 0) gc.setFill(Color.WHITE);
+                        if(imageArray[i][j] == 0) gc.setFill(Color.WHITE);
                         else gc.setFill(Color.BLACK);
                         gc.fillRect(20*i,20*j,20,20);
 
+                    }
+                }
+
+                for(int i = 0; i < imageArray.length; i++){
+                    for (int j = 0; j < imageArray.length; j++){
+                        if(imageArray[i][j] == 0) rec[i][j].setFill(Color.WHITE);
+                        else rec[i][j].setFill(Color.RED);
                     }
                 }
                 main.getNeuralNetwork().calculate(imageArray);
 
                 writePercent();
 
+            }
+        });
+
+        customList.getSelectionModel().selectedIndexProperty().addListener(new ChangeListener<Number>() {
+            @Override
+            public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
+                Char ch = customList.getItems().get(newValue.intValue());
+                System.out.println(ch.path);
+                int[][] imageArray = ch.getImageArray();
+                for(int i = 0; i < imageArray.length; i++){
+                    for (int j = 0; j < imageArray.length; j++){
+                        if(imageArray[i][j] == 0) rec[i][j].setFill(Color.WHITE);
+                        else rec[i][j].setFill(Color.RED);
+                    }
+                }
             }
         });
     }

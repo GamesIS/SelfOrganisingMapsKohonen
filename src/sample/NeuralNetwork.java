@@ -1,7 +1,11 @@
 package sample;
 
 import com.sun.org.apache.xpath.internal.SourceTree;
+import javafx.application.Platform;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.scene.chart.XYChart;
+import javafx.scene.control.Label;
 import sample.controller.ListImagesController;
 import sample.model.NeuroProperties;
 
@@ -19,13 +23,13 @@ public class NeuralNetwork {
 
     private static final int COUNT_EDGE = COUNT_LAYERS - 1;// Количество слоев ребер = Количество слоев нейронов - 1
 
-    private static final int COUNT_EPOCH = 2000;// Количество слоев ребер = Количество слоев нейронов - 1
+    private static final int COUNT_EPOCH = 1500;// Количество слоев ребер = Количество слоев нейронов - 1
 
     private static final double BIAS_NEURON = 1;// Нейрон смещения /*их можно размещать на входном слое и всех скрытых слоях, но никак не на выходном слое*/
 
     private static final double d = 1; // параметр наклона сигмоидальной функции
 
-    private static final double SPEED = 0.008; // коэффициент скорости обучения
+    private static final double SPEED = 0.03; // коэффициент скорости обучения
     //private static final double SPEED = 0.03; // коэффициент скорости обучения
     private static final double ALPHA = 0.00005;//α (альфа) — момент
     //private static final double ALPHA = 0.0005;//α (альфа) — момент
@@ -110,9 +114,13 @@ public class NeuralNetwork {
         long hour;
         long minutes;
         long seconds;
+        String errorText;
         DecimalFormat decimalFormatter = new DecimalFormat("###.###");
         decimalFormatter.setMinimumFractionDigits(3);
         decimalFormatter.setMinimumIntegerDigits(2);
+        XYChart.Series series = ListImagesController.getController().series1;
+        ObservableList <XYChart.Data> graphic = FXCollections.observableArrayList();
+
         deltaWeights = new double[COUNT_EDGE][maxLengthLayers()][maxLengthLayers()];
         for (int epoch = 0; epoch < COUNT_EPOCH; epoch++) {
             errEpoch = 0;
@@ -214,16 +222,34 @@ public class NeuralNetwork {
             errEpoch /= COUNT_INPUT_NEURON;
             percent += step;
             //ListImagesController.getController().percent.setText(decimalFormatter.format(percent));
-            XYChart.Series series = ListImagesController.getController().series1;
-            series.getData().add(new XYChart.Data(epoch, errEpoch));
+
+            errorText = "Ошибка эпохи:" + errEpoch + "  ["+ decimalFormatter.format(percent) +"]";
+
+            graphic.add(new XYChart.Data(epoch, errEpoch));
+
+            //labelError.setText(errorText);
+
+            /*Platform.runLater(new Runnable() {
+                @Override
+                public void run() {
+
+                }
+            });*/
+
+
+
+
             //ListImagesController.getController().convergence.getData().addAll(series);
 
-            System.out.println("Ошибка эпохи:" + errEpoch + "  ["+ decimalFormatter.format(percent) +"]");
+            System.out.println(errorText);
+
+            //System.out.println("Ошибка эпохи:" + errEpoch + "  ["+ decimalFormatter.format(percent) +"]");
             if (errEpoch < SENSITIVITY) {
                 break;
             }
             Collections.shuffle(chars);
         }
+        series.getData().addAll(graphic);
     }
 
     public double[] getExpectedResult(int ch) {

@@ -1,10 +1,9 @@
 package sample;
 
 
-import sample.model.Image;
-import sample.model.NeuroProperties;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 
-import javax.imageio.ImageIO;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
@@ -13,7 +12,6 @@ import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
-import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -23,21 +21,28 @@ import java.util.List;
 public class Char {
     @XmlElement(name = "imageArray")
     private int [][] imageArray;
-    @XmlElement(name = "name")
-    private char name;
+    @XmlElement(name = "word")
+    private char word;
     @XmlElement(name = "num")
     private int num;
+
+    private StringProperty name;
+    public String path;
+
 
     private static final String FILE_PATH = Main.RESOURCES_PATH + "/xmlChars";
     private static final String FILE_EXPANSION = ".xml";
 
     public Char() {
+        this.name = new SimpleStringProperty();
+        path = "";
     }
 
     public Char(int[][] imageArray, char name) {
         this.imageArray = imageArray;
-        this.name = name;
+        this.word = name;
         this.num = NeuralNetwork.getOutputNumber(name);
+        this.name = new SimpleStringProperty();
     }
 
     public static void saveChar(Char aChar){
@@ -52,7 +57,7 @@ public class Char {
                 for(File item : dir.listFiles()){
                     String name = item.getName().split("\\.")[0];
                     char ch = name.charAt(0);
-                    if(ch == aChar.getName()){
+                    if(ch == aChar.getWord()){
                         if(name.length() > 1){
                             flag = true;
                             index = Integer.valueOf(item.getName().split("\\.")[0].substring(1, name.length()));
@@ -65,7 +70,7 @@ public class Char {
                 max_index++;
             }
             else { max_index = 0; }
-            String charName = "" + aChar.getName() + max_index;
+            String charName = "" + aChar.getWord() + max_index;
 
             File file = new File(FILE_PATH + File.separator + charName + FILE_EXPANSION);
             JAXBContext context = JAXBContext.newInstance(Char.class);
@@ -90,6 +95,8 @@ public class Char {
                     Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();
 
                     aChar = (Char) jaxbUnmarshaller.unmarshal(item);
+                    aChar.setName(item.getName());
+                    aChar.path = item.getAbsolutePath();
                     chars.add(aChar);
                 }
             }
@@ -105,8 +112,8 @@ public class Char {
         return imageArray;
     }
 
-    public char getName() {
-        return name;
+    public char getWord() {
+        return word;
     }
 
     public int getNum() {
@@ -117,11 +124,28 @@ public class Char {
         this.imageArray = imageArray;
     }
 
-    public void setName(char name) {
-        this.name = name;
+    public void setWord(char word) {
+        this.word = word;
     }
 
     public void setNum(int num) {
         this.num = num;
+    }
+
+    public void setName(String name) {
+        this.name.set(name);
+    }
+
+    public String getName() {
+        return name.get();
+    }
+
+    public StringProperty nameProperty() {
+        return name;
+    }
+
+    @Override
+    public String toString() {
+        return name.get();
     }
 }

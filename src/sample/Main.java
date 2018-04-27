@@ -18,17 +18,15 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
-import static sample.Char.loadChars;
-
 public class Main extends Application {
     public static final String RESOURCES_PATH = new File("resources").getAbsolutePath();
     private Stage primaryStage;
     private BorderPane rootLayout;
     private ObservableList<Image> imageData = FXCollections.observableArrayList();
     private NeuralNetwork neuralNetwork;
-    private List<Char> chars;
+    private ObservableList<Char> chars = FXCollections.observableArrayList();
 
-    public List<Char> getChars() {
+    public ObservableList<Char> getChars() {
         return chars;
     }
 
@@ -39,7 +37,7 @@ public class Main extends Application {
     public Main() {
         neuralNetwork = new NeuralNetwork();
         neuralNetwork.load();
-        chars = new ArrayList<Char>();
+        //chars = new ArrayList<Char>();
         //System.exit(1);
         loadImages();
         chars.addAll(Char.loadChars());
@@ -48,21 +46,21 @@ public class Main extends Application {
         Char ch = chars.get(0);
         char sym = 'Ё';
         for (Char tmp: chars){
-            //System.out.print(tmp.getName());
-            if (tmp.getName() == sym) {
+            //System.out.print(tmp.getWord());
+            if (tmp.getWord() == sym) {
                 ch = tmp; break;
             }
         }
         //load
 
-        /*System.out.println("Буква = ["+ ch.getName() +"]{"+ ch.getNum() +"}");
+        /*System.out.println("Буква = ["+ ch.getWord() +"]{"+ ch.getNum() +"}");
         neuralNetwork.writeResultsForSym(ch.getImageArray());
 
         neuralNetwork.calculate(ch.getImageArray());
 
         neuralNetwork.study(chars);
 
-        System.out.println("Буква = ["+ ch.getName() +"]{"+ ch.getNum() +"}");
+        System.out.println("Буква = ["+ ch.getWord() +"]{"+ ch.getNum() +"}");
         neuralNetwork.writeResultsForSym(ch.getImageArray());*/
         //neuralNetwork.study();
     }
@@ -98,7 +96,7 @@ public class Main extends Application {
             for(File item : dir.listFiles()){
 
                 if(!item.isDirectory()){
-                    //System.out.println(item.getName() + "  \tфайл");
+                    //System.out.println(item.getWord() + "  \tфайл");
                     try {
                         BufferedImage bufferedImage = ImageIO.read(new File(item.getAbsolutePath()));
                         int [][] tmp = imageToArray(bufferedImage);
@@ -115,7 +113,7 @@ public class Main extends Application {
                     }
                 }
                 else{
-                    //System.out.println(item.getName() + "\tкаталог");
+                    //System.out.println(item.getWord() + "\tкаталог");
                 }
             }
         }
@@ -136,7 +134,7 @@ public class Main extends Application {
             for(File item : dir.listFiles()){
 
                 if(!item.isDirectory()){
-                    //System.out.println(item.getName() + "  \tфайл");
+                    //System.out.println(item.getWord() + "  \tфайл");
                     try {
                         BufferedImage bufferedImage = ImageIO.read(new File(item.getAbsolutePath()));
                         int [][] tmp = imageToArray(bufferedImage);
@@ -153,7 +151,7 @@ public class Main extends Application {
                     }
                 }
                 else{
-                    //System.out.println(item.getName() + "\tкаталог");
+                    //System.out.println(item.getWord() + "\tкаталог");
                 }
             }
         }
@@ -172,7 +170,7 @@ public class Main extends Application {
 
         for (int row = 0; row < height; row++) {
             for (int col = 0; col < width; col++) {
-                if(image.getRGB(col,row) < -1){
+                if(image.getRGB(row,col) < -1){
                     result[row][col] = 1;
                 }
                 else {
