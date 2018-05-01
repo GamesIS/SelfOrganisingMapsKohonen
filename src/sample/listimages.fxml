@@ -1,26 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
 <?import javafx.scene.layout.AnchorPane?>
-<?import javafx.scene.layout.ColumnConstraints?>
-<?import javafx.scene.layout.GridPane?>
-<?import javafx.scene.layout.RowConstraints?>
-<AnchorPane prefHeight="589.0" prefWidth="515.0" xmlns="http://javafx.com/javafx/8.0.141"
-            xmlns:fx="http://javafx.com/fxml/1" fx:controller="sample.controller.ListImagesController">
+<?import javafx.scene.layout.Pane?>
+
+<AnchorPane prefHeight="715.0" prefWidth="999.0" xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1" fx:controller="sample.controller.ListImagesController">
     <children>
-        <Button fx:id="remember" layoutX="337.0" layoutY="519.0" mnemonicParsing="false" prefHeight="63.0"
-                prefWidth="139.0" text="Запомнить"/>
-        <GridPane fx:id="drawGrid" layoutX="20.0" layoutY="14.0" prefHeight="505.0" prefWidth="476.0">
-            <columnConstraints>
-                <ColumnConstraints/>
-            </columnConstraints>
-            <rowConstraints>
-                <RowConstraints/>
-            </rowConstraints>
-        </GridPane>
-        <Button fx:id="restore" layoutX="183.0" layoutY="519.0" mnemonicParsing="false" prefHeight="63.0"
-                prefWidth="139.0" text="Восстановить"/>
-        <Button fx:id="clear" layoutX="30.0" layoutY="519.0" mnemonicParsing="false" prefHeight="63.0" prefWidth="139.0"
-                text="Очистить"/>
+        <Button fx:id="reset" layoutX="336.0" layoutY="582.0" mnemonicParsing="false" prefHeight="63.0" prefWidth="139.0" text="Сброс" />
+        <Button fx:id="trainButton" layoutX="183.0" layoutY="582.0" mnemonicParsing="false" prefHeight="63.0" prefWidth="139.0" text="Обучение" />
+        <Button fx:id="clear" layoutX="28.0" layoutY="582.0" mnemonicParsing="false" prefHeight="63.0" prefWidth="139.0" text="Очистить" />
+      <Pane fx:id="grid" layoutX="14.0" layoutY="14.0" nodeOrientation="LEFT_TO_RIGHT" prefHeight="559.0" prefWidth="811.0" />
+      <ComboBox fx:id="property" layoutX="829.0" layoutY="14.0" prefWidth="150.0" />
+      <Label fx:id="info" layoutX="829.0" layoutY="77.0" text="Label" />
     </children>
 </AnchorPane>

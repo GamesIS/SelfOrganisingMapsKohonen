@@ -7,6 +7,8 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.Pane;
+import javafx.stage.Screen;
 import javafx.stage.Stage;
 import sample.controller.ListImagesController;
 
@@ -17,11 +19,12 @@ public class Main extends Application {
     public static final String RESOURCES_PATH = new File("resources").getAbsolutePath();
     private Stage primaryStage;
     private BorderPane rootLayout;
-    private NeuralHopfield neuralHopfield;
+    //private NeuralHopfield neuralHopfield;
     private ObservableList<Char> chars = FXCollections.observableArrayList();
+    private ListImagesController controller;
 
     public Main() {
-        neuralHopfield = new NeuralHopfield();
+        //neuralHopfield = new NeuralHopfield();
 
     }
 
@@ -40,7 +43,14 @@ public class Main extends Application {
 
         showListImages();
 
-        primaryStage.getScene().getStylesheets().add("sample/style.css");
+        //Pane container = new Pane();
+
+        //Scene scene = new Scene(container, 500, 500);
+
+        controller.STARTTHISBULLSHIT();
+
+        //primaryStage.setScene(scene);
+        //primaryStage.getScene().getStylesheets().add("sample/style.css");
 
     }
 
@@ -49,7 +59,7 @@ public class Main extends Application {
         try {
             // Загружаем корневой макет из fxml файла.
             //FXMLLoader loader = new FXMLLoader();
-            //loader.setLocation(Main.class.getResource("sample.fxml"));
+            //loader.setLocation(KohonenNetwork.Main.class.getResource("sample.fxml"));
             rootLayout = (BorderPane) FXMLLoader.load(getClass().getResource("sample.fxml"));
 
             // Отображаем сцену, содержащую корневой макет.
@@ -69,7 +79,7 @@ public class Main extends Application {
 
             rootLayout.setCenter(listImage);
 
-            ListImagesController controller = loader.getController();
+            controller = loader.getController();
             controller.setMain(this);
         }
         catch (IOException e){

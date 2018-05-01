@@ -1,64 +1,75 @@
 package sample.controller;
 
+import KohonenMap.*;
+import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
-import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Button;
-import javafx.scene.input.MouseButton;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.Label;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.GridPane;
+import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
-import javafx.scene.shape.Rectangle;
 import sample.Main;
 
 
 public class ListImagesController {
     private static ListImagesController controller;
-    @FXML
-    private GridPane drawGrid;
 
     @FXML
-    public Button remember;
+    public Button reset;
+
+    @FXML
+    public ComboBox property;
 
     @FXML
     public Button clear;
 
     @FXML
-    public Button restore;
+    public Button trainButton;
 
+    @FXML
+    public Pane grid;
 
-    private static final int WIDTH_RECTANGLE = 30;
-    private static final int COUNT_PIXEL = 15;
+    @FXML
+    public Label info;
 
     private Main main;
-    private Rectangle[][] rec;
 
 
     private static ObservableList<String> obResList;
 
     @FXML
     public void initialize() {
-        clear.addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
+        trainButton.addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
             @Override
             public void handle(MouseEvent mouseEvent) {
-                for (int i = 0; i < rec.length; i++) {
-                    for (int j = 0; j < rec[i].length; j++) {
-                        rec[i][j].setFill(Color.WHITE);
-                    }
+                //Thread myThready = new Thread(trainer);	//Создание потока "myThready"
+                //myThready.start();
+                //trainer.start();
+                trainer.run();
+                //HexDrawer.paint(trainer.getLattice(), property.getSelectionModel().getSelectedIndex()/*mapProp.getSelectedIndex(), currentPoint*/);
+            }
+        });
+        reset.addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
+            @Override
+            public void handle(MouseEvent mouseEvent) {
+            }
+        });
+        property.setOnAction((e) -> {
+            //HexDrawer.repaint(trainer.getLattice(), property.getSelectionModel().getSelectedIndex()/*mapProp.getSelectedIndex(), currentPoint*/);
+            HexDrawer.paint(trainer.getLattice(), property.getSelectionModel().getSelectedIndex()/*mapProp.getSelectedIndex(), currentPoint*/);
+        });
+        grid.setOnMouseMoved(new EventHandler<MouseEvent>() {
+            @Override
+            public void handle(MouseEvent event) {
+                if(!trainer.isRunning()){
+                    HexDrawer.increasedHex((int)event.getX(), (int)event.getY(), trainer, property.getSelectionModel().getSelectedIndex());
                 }
             }
         });
-        restore.addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
-            @Override
-            public void handle(MouseEvent mouseEvent) {
-            }
-        });
-        remember.addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
-            @Override
-            public void handle(MouseEvent mouseEvent) {
-            }
-        });
+
     }
 
     public ListImagesController() {
@@ -70,87 +81,38 @@ public class ListImagesController {
     }
 
 
-    private void initDraw(GraphicsContext gc) {
-        double canvasWidth = gc.getCanvas().getWidth();
-        double canvasHeight = gc.getCanvas().getHeight();
+    private Trainer trainer;
 
-        gc.setFill(Color.LIGHTGRAY);
-        gc.setStroke(Color.BLACK);
-        gc.setLineWidth(5);
+    private final static Color COLOUR_BACKGROUND =  Color.WHITE;
+    private final static int BORDERS = 15;
+    private static int gridHeight = 20;
+    private static int gridWidth = (int) ((double) gridHeight / 9 * 16);
+    private static int hexHeight = 16;
 
-        gc.fill();
-        gc.strokeRect(
-                0,              //x of the upper left corner
-                0,              //y of the upper left corner
-                canvasWidth,    //width of the rectangle
-                canvasHeight);  //height of the rectangle
+    public void STARTTHISBULLSHIT(){
+       trainer = new Trainer(Data.testData());
 
-        gc.setFill(Color.RED);
-        gc.setStroke(Color.BLUE);
-        gc.setLineWidth(1);
+        trainer.setLattice(new Lattice(gridWidth, gridHeight, trainer.getInputs().getData()[0].length));
+
+        HexDrawer.setContainer(grid);
+        HexDrawer.setHeight(hexHeight);
+        HexDrawer.setBorder(true);
+        HexDrawer.setSize(gridWidth, gridHeight);
+
+
+        ObservableList<String> properties = FXCollections.observableArrayList();
+
+        properties.addAll(trainer.getInputs().getName());
+
+        property.setItems(properties);
+        property.getSelectionModel().selectFirst();
+        //properties.sel
+
+        HexDrawer.paint(trainer.getLattice(), 0/*mapProp.getSelectedIndex(), currentPoint*/);
     }
+
 
     public void setMain(Main main) {
         this.main = main;
-
-        makeGrid();
-    }
-
-    public GridPane makeGrid() {
-
-        drawGrid.setGridLinesVisible(true);
-        rec = new Rectangle[COUNT_PIXEL][COUNT_PIXEL];
-
-        for (int i = 0; i < rec.length; i++) {
-            for (int j = 0; j < rec[i].length; j++) {
-                rec[i][j] = new Rectangle();
-                rec[i][j].setX(i * WIDTH_RECTANGLE);
-                rec[i][j].setY(j * WIDTH_RECTANGLE);
-                rec[i][j].setWidth(WIDTH_RECTANGLE);
-                rec[i][j].setHeight(WIDTH_RECTANGLE);
-                rec[i][j].setFill(null);
-                rec[i][j].setStroke(Color.BLACK);
-                //p.getChildren().add(rec[i][j]);
-                drawGrid.add(rec[i][j], i, j);
-            }
-        }
-
-        drawGrid.addEventHandler(MouseEvent.MOUSE_DRAGGED, new EventHandler<MouseEvent>() {
-            @Override
-            public void handle(MouseEvent event) {
-                draw(event);
-            }
-        });
-
-        drawGrid.setOnMouseClicked(new EventHandler<MouseEvent>() {
-            @Override
-            public void handle(MouseEvent event) {
-                draw(event);
-            }
-        });
-
-        return drawGrid;
-    }
-
-    private void draw(MouseEvent event) {
-        double posX = event.getX();
-        double posY = event.getY();
-
-        System.out.println("posX = " + posX + " posY = " + posY);
-
-        posX -= (posX / 15);
-        posY -= (posY / 15);
-
-        int colX = (int) ((posX / WIDTH_RECTANGLE));
-        int colY = (int) ((posY / WIDTH_RECTANGLE));
-        System.out.println("colX = " + colX + " colY = " + colY);
-
-        if (colX < COUNT_PIXEL && colY < COUNT_PIXEL) {
-            if (event.getButton() == MouseButton.SECONDARY) {
-                rec[colX][colY].setFill(Color.WHITE);
-            } else {
-                rec[colX][colY].setFill(Color.RED);
-            }
-        }
     }
 }
