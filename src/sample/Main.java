@@ -1,16 +1,12 @@
 package sample;
 
 import javafx.application.Application;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.Pane;
-import javafx.stage.Screen;
 import javafx.stage.Stage;
-import sample.controller.ListImagesController;
+import KohonenMap.gui.ListImagesController;
 
 import java.io.File;
 import java.io.IOException;
@@ -20,7 +16,6 @@ public class Main extends Application {
     private Stage primaryStage;
     private BorderPane rootLayout;
     //private NeuralHopfield neuralHopfield;
-    private ObservableList<Char> chars = FXCollections.observableArrayList();
     private ListImagesController controller;
 
     public Main() {
@@ -47,7 +42,7 @@ public class Main extends Application {
 
         //Scene scene = new Scene(container, 500, 500);
 
-        controller.STARTTHISBULLSHIT();
+        controller.startNetwork();
 
         //primaryStage.setScene(scene);
         //primaryStage.getScene().getStylesheets().add("sample/style.css");

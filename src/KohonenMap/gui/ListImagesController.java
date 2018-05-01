@@ -1,6 +1,8 @@
-package sample.controller;
+package KohonenMap.gui;
 
-import KohonenMap.*;
+import KohonenMap.Network.Data;
+import KohonenMap.Network.Grid;
+import KohonenMap.Network.Trainer;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
@@ -35,21 +37,17 @@ public class ListImagesController {
     @FXML
     public Label info;
 
-    private Main main;
+    public Main main;
 
 
-    private static ObservableList<String> obResList;
 
     @FXML
     public void initialize() {
         trainButton.addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
             @Override
             public void handle(MouseEvent mouseEvent) {
-                //Thread myThready = new Thread(trainer);	//Создание потока "myThready"
-                //myThready.start();
-                //trainer.start();
-                trainer.run();
-                //HexDrawer.paint(trainer.getLattice(), property.getSelectionModel().getSelectedIndex()/*mapProp.getSelectedIndex(), currentPoint*/);
+                trainer.start();
+                //trainer.run();
             }
         });
         reset.addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
@@ -58,8 +56,7 @@ public class ListImagesController {
             }
         });
         property.setOnAction((e) -> {
-            //HexDrawer.repaint(trainer.getLattice(), property.getSelectionModel().getSelectedIndex()/*mapProp.getSelectedIndex(), currentPoint*/);
-            HexDrawer.paint(trainer.getLattice(), property.getSelectionModel().getSelectedIndex()/*mapProp.getSelectedIndex(), currentPoint*/);
+            HexDrawer.repaint(trainer.getGrid(), property.getSelectionModel().getSelectedIndex()/*mapProp.getSelectedIndex(), currentPoint*/);
         });
         grid.setOnMouseMoved(new EventHandler<MouseEvent>() {
             @Override
@@ -83,32 +80,23 @@ public class ListImagesController {
 
     private Trainer trainer;
 
-    private final static Color COLOUR_BACKGROUND =  Color.WHITE;
-    private final static int BORDERS = 15;
-    private static int gridHeight = 20;
-    private static int gridWidth = (int) ((double) gridHeight / 9 * 16);
-    private static int hexHeight = 16;
+    private static final int gridHeight = 40;
+    private static final int gridWidth = (int) ((double) gridHeight / 9 * 16);
+    private static final int hexHeight = 13;
 
-    public void STARTTHISBULLSHIT(){
-       trainer = new Trainer(Data.testData());
+    public void startNetwork(){
+        trainer = new Trainer(Data.testData());
+        trainer.setGrid(new Grid(gridWidth, gridHeight, trainer.getInputs().getData()[0].length));
 
-        trainer.setLattice(new Lattice(gridWidth, gridHeight, trainer.getInputs().getData()[0].length));
-
-        HexDrawer.setContainer(grid);
-        HexDrawer.setHeight(hexHeight);
-        HexDrawer.setBorder(true);
-        HexDrawer.setSize(gridWidth, gridHeight);
-
-
+        HexDrawer.setProperty(grid, gridWidth, gridHeight, hexHeight, true);
         ObservableList<String> properties = FXCollections.observableArrayList();
 
         properties.addAll(trainer.getInputs().getName());
 
         property.setItems(properties);
         property.getSelectionModel().selectFirst();
-        //properties.sel
 
-        HexDrawer.paint(trainer.getLattice(), 0/*mapProp.getSelectedIndex(), currentPoint*/);
+        HexDrawer.paint(trainer.getGrid(), 0);
     }
 
 
