@@ -77,7 +77,7 @@ public class Data {//Данные
 
 
     public static Data testData() {
-        return new Data(
+        /*return new Data(
                 new String[]  {// Параметры
                         "Масса",
                         "Длина",
@@ -101,6 +101,31 @@ public class Data {//Данные
                         {44.2, 6770, 3070, 520, 37}, // (тяжелый) ИС-1
                         {46,   6770, 3070, 520, 37}, // (тяжелый) ИС-2
                         {49,   6900, 3150, 520, 40}, // (тяжелый) ИС-3
+                }
+        );*/
+        return new Data(
+                new String[]  {// Параметры
+                        "Транзисторы (млн)",
+                        "Частота работы ядра",
+                        "Частота работы памяти",
+                        "Объем памяти"
+                },
+                new double[][]{// Входные вектора
+                        //Транз   Ядро   ghzRAM   vRAM
+                        {8000,   1075,   7010,   12288}, // NVIDIA GeForce GTX Titan X
+                        {1300,   993,    5000,   1048}, // NVIDIA GeForce GT 740
+                        {112,    450,    650,    128}, // NVIDIA GeForce 7300 LE
+                        {2640,   880,    5500,   2048}, // AMD Radeon HD 6970
+                        {6200,   1050,   6000,   8192}, // AMD Radeon R9 390X
+                        {12000,  1582,   11000,  11264}, // NVIDIA GeForce GTX 1080 Ti
+                        {3500,   1085,   7010,   2048}, // NVIDIA GeForce GTX 770
+                        {5200,   1216,   7010,   4096}, // NVIDIA GeForce GTX 980
+                        {2800,   975,    5600,   2048}, // AMD Radeon R7 370
+                        {4400,   1708,   8000,   6144}, // NVIDIA GeForce GTX 1060
+                        {1950,   675,    3600,   768}, // NVIDIA GeForce GTX 460
+                        {8900,   1050,   6500,   4096}, // AMD Radeon R9 Fury X
+                        {5700,   1340,   8000,   8192}, // AMD Radeon RX 580
+
                 }
         );
     }
